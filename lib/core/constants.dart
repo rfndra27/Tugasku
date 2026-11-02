@@ -1,0 +1,57 @@
+import 'package:flutter/material.dart';
+
+class AppConstants {
+  static const String appName = 'TugasKu';
+  static const String appTagline = 'Asisten Deadline Mahasiswa';
+
+  // AI Configuration
+  static const String defaultGeminiApiKey = ''; 
+  static const String geminiModel = 'gemini-1.5-flash';
+  static const String geminiEndpoint = 'https://generativelanguage.googleapis.com/v1beta/models';
+
+  // Freemium Constraints
+  static const int freeAiMonthlyQuota = 5;
+  static const int freeMaxGroupMembers = 3;
+  static const int premiumMonthlyPriceIdr = 10000;
+
+  // Midtrans Payment Gateway Configuration
+  static const String midtransClientKey = 'SB-Mid-client-DemoTugaskuKey123';
+  static const bool midtransIsProduction = false;
+
+  // Task Sources
+  static const String sourceManual = 'manual';
+  static const String sourceAiSmartInput = 'ai_smart_input';
+  static const String sourceElearningIcal = 'elearning_ical';
+
+  // Overload Thresholds
+  static const int overloadTaskCountThreshold = 3;
+  static const double overloadWeightThreshold = 35.0; // percent
+  static const int overloadWindowDays = 3;
+
+  // Notification Channels
+  static const String notificationChannelId = 'tugasku_deadlines';
+  static const String notificationChannelName = 'Pengingat Deadline Tugas';
+  static const String notificationChannelDesc = 'Notifikasi bertingkat H-3, H-1, dan 3 jam sebelum deadline';
+
+  // ----------------------------------------------------
+  // DISCORD-STYLE DARK THEME PALETTE
+  // ----------------------------------------------------
+  static const Color primaryColor = Color(0xFF5865F2); // Discord Blurple
+  static const Color secondaryColor = Color(0xFF4752C4); // Discord Deep Blurple
+  static const Color accentColor = Color(0xFFFEE75C); // Discord Yellow
+  
+  static const Color scaffoldBackgroundColor = Color(0xFF1E1F22); // Discord darkest background
+  static const Color surfaceColor = Color(0xFF313338); // Discord chat & content surface
+  static const Color cardColor = Color(0xFF2B2D31); // Discord container/card surface
+  static const Color inputColor = Color(0xFF1E1F22); // Discord textfield background
+  static const Color borderSubtleColor = Color(0xFF3F4147); // Discord subtle divider
+  static const Color elevatedSurfaceColor = Color(0xFF35373C); // Discord hover/elevated surface
+
+  static const Color textPrimaryColor = Color(0xFFF2F3F5); // Discord primary bright text
+  static const Color textSecondaryColor = Color(0xFF949BA4); // Discord muted description text
+  static const Color textLinkColor = Color(0xFF00A8FC); // Discord link cyan
+
+  static const Color errorColor = Color(0xFFED4245); // Discord Red
+  static const Color successColor = Color(0xFF57F287); // Discord Green
+  static const Color warningColor = Color(0xFFFEE75C); // Discord Yellow
+}

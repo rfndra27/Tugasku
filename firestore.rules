@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if request is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user matches target userId
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Profiles collection: profiles/{userId}
+    match /profiles/{userId} {
+      allow read: if isOwner(userId);
+      
+      // On creation: client must NOT set is_premium = true or forge streaks/quotas
+      allow create: if isOwner(userId) 
+        && request.resource.data.is_premium == false
+        && request.resource.data.current_streak == 0
+        && request.resource.data.best_streak == 0
+        && request.resource.data.ai_usage_count == 0;
+      
+      // STRICT UPDATE: Client CANNOT modify privileged fields!
+      // is_premium, premium_expiry, current_streak, best_streak, last_completed_date,
+      // ai_usage_count, and ai_usage_reset_date must ONLY be updated via Cloud Functions (Admin SDK)
+      allow update: if isOwner(userId) &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny([
+            'is_premium',
+            'premium_expiry',
+            'current_streak',
+            'best_streak',
+            'last_completed_date',
+            'ai_usage_count',
+            'ai_usage_reset_date'
+          ]);
+      
+      allow delete: if false; // Profiles cannot be deleted directly by client
+    }
+
+    // Payments collection: managed exclusively by Cloud Functions
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow write: if false; // Only Cloud Functions can create and update payment records
+    }
+
+    // User's private subcollections:
+    // users/{userId}/courses/{courseId}
+    // users/{userId}/tasks/{taskId}
+    // users/{userId}/tasks/{taskId}/subtasks/{subtaskId}
+    // users/{userId}/group_projects/{projectId}
+    // users/{userId}/group_members/{memberId}
+    // users/{userId}/class_schedules/{scheduleId}
+    // users/{userId}/elearning_configs/{configId}
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      match /{subcollection=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+  }
+}
