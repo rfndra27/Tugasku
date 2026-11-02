@@ -5,7 +5,10 @@ class AppConstants {
   static const String appTagline = 'Asisten Deadline Mahasiswa';
 
   // AI Configuration
-  static const String defaultGeminiApiKey = ''; 
+  static const String defaultGeminiApiKey = String.fromEnvironment(
+    'GEMINI_API_KEY',
+    defaultValue: '',
+  );
   static const String geminiModel = 'gemini-1.5-flash';
   static const String geminiEndpoint = 'https://generativelanguage.googleapis.com/v1beta/models';
 

@@ -13,25 +13,9 @@ class DefaultFirebaseOptions {
     'FIREBASE_PROJECT_ID',
     defaultValue: 'tugasku-student-app',
   );
-  static const String _apiKeyWeb = String.fromEnvironment(
-    'FIREBASE_API_KEY_WEB',
-    defaultValue: 'AIzaSyDemoTugaskuWebApiKey1234567890',
-  );
-  static const String _apiKeyAndroid = String.fromEnvironment(
-    'FIREBASE_API_KEY_ANDROID',
-    defaultValue: 'AIzaSyDemoTugaskuAndroidApiKey123456789',
-  );
   static const String _apiKeyIos = String.fromEnvironment(
     'FIREBASE_API_KEY_IOS',
     defaultValue: 'AIzaSyDemoTugaskuIosApiKey123456789',
-  );
-  static const String _appIdWeb = String.fromEnvironment(
-    'FIREBASE_APP_ID_WEB',
-    defaultValue: '1:1234567890:web:abcdef123456',
-  );
-  static const String _appIdAndroid = String.fromEnvironment(
-    'FIREBASE_APP_ID_ANDROID',
-    defaultValue: '1:1234567890:android:abcdef123456',
   );
   static const String _appIdIos = String.fromEnvironment(
     'FIREBASE_APP_ID_IOS',
