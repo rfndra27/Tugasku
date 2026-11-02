@@ -57,22 +57,22 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: _apiKeyWeb,
-    appId: _appIdWeb,
-    messagingSenderId: _messagingSenderId,
-    projectId: _projectId,
-    authDomain: '$_projectId.firebaseapp.com',
-    storageBucket: '$_projectId.appspot.com',
+    apiKey: 'AIzaSyALrnv5zRPBxOzSG8q7rU1hAGF9CWYp2RY',
+    appId: '1:661282330868:web:36e9508f733e3fc28fa6a1',
+    messagingSenderId: '661282330868',
+    projectId: 'tugasku-student-app',
+    authDomain: 'tugasku-student-app.firebaseapp.com',
+    storageBucket: 'tugasku-student-app.firebasestorage.app',
+    measurementId: 'G-0R45XCXSB7',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: _apiKeyAndroid,
-    appId: _appIdAndroid,
-    messagingSenderId: _messagingSenderId,
-    projectId: _projectId,
-    storageBucket: '$_projectId.appspot.com',
+    apiKey: 'AIzaSyBI3dIfbFvF7pvQooqPtWZomfOMkp5Jn6w',
+    appId: '1:661282330868:android:a6534b2018a73b058fa6a1',
+    messagingSenderId: '661282330868',
+    projectId: 'tugasku-student-app',
+    storageBucket: 'tugasku-student-app.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: _apiKeyIos,
     appId: _appIdIos,

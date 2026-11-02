@@ -1,10 +1,1 @@
-{
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "functions": {
-    "source": "functions"
-  }
-}
-
+{"firestore":{"rules":"firestore.rules","indexes":"firestore.indexes.json"},"functions":{"source":"functions"},"flutter":{"platforms":{"android":{"default":{"projectId":"tugasku-student-app","appId":"1:661282330868:android:a6534b2018a73b058fa6a1","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"tugasku-student-app","configurations":{"android":"1:661282330868:android:a6534b2018a73b058fa6a1","web":"1:661282330868:web:36e9508f733e3fc28fa6a1"}}}}}}

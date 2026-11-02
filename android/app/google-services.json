@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "661282330868",
+    "project_id": "tugasku-student-app",
+    "storage_bucket": "tugasku-student-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:661282330868:android:a6534b2018a73b058fa6a1",
+        "android_client_info": {
+          "package_name": "com.tugasku.app.tugasku"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBI3dIfbFvF7pvQooqPtWZomfOMkp5Jn6w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
