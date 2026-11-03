@@ -112,75 +112,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     }
   }
 
-  void _showForgotPasswordDialog() {
-    final resetEmailController = TextEditingController(text: _loginEmailController.text);
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Lupa Kata Sandi?',
-          style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Masukkan email mahasiswa Anda untuk menerima tautan pemulihan sandi.',
-              style: TextStyle(color: Color(0xFF475569), fontSize: 13),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: resetEmailController,
-              keyboardType: TextInputType.emailAddress,
-              style: const TextStyle(color: Color(0xFF0F172A)),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: const Color(0xFFF1F5F9),
-                hintText: 'nama@kampus.ac.id',
-                hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: Color(0xFF64748B))),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0060B6),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: () {
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Tautan pemulihan kata sandi telah dikirim ke email Anda.'),
-                  backgroundColor: Color(0xFF0060B6),
-                ),
-              );
-            },
-            child: const Text('Kirim Link'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -319,7 +250,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                                   ),
                                 ),
 
-                                // Right floating login card (eLearning PNJ style)
+                                // Right floating login card
                                 SizedBox(
                                   width: 420,
                                   child: _buildLoginCard(),
@@ -351,56 +282,36 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           ),
         ],
       ),
-      padding: const EdgeInsets.fromLTRB(28, 28, 28, 24),
+      padding: const EdgeInsets.all(28),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header matching Image 1: "Login to eLearning PNJ" & TugasKu branding
-          Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0060B6), Color(0xFF0088FF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
+          // Header: Clean title and tagline without extra logo box
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text(
+                AppConstants.appName,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0F172A),
+                  letterSpacing: -0.3,
                 ),
-                child: const Icon(Icons.school_rounded, color: Colors.white, size: 26),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      AppConstants.appName,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F172A),
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      AppConstants.appTagline,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF64748B),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+              SizedBox(height: 4),
+              Text(
+                AppConstants.appTagline,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF64748B),
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
 
           // Error banner if any
           if (_errorMessage != null) ...[
@@ -429,7 +340,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
           // Clean Tab Bar (Masuk / Daftar Akun)
           Container(
-            height: 38,
+            height: 40,
             decoration: BoxDecoration(
               color: const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(8),
@@ -458,7 +369,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               ],
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
 
           // Tab content
           AnimatedBuilder(
@@ -469,36 +380,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   : _buildRegisterView();
             },
           ),
-
-          const SizedBox(height: 14),
-
-          // Bottom Bar matching Image 1: English (en) / Cookies notice
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Text(
-                    'Bahasa (id)',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
-                  ),
-                  Icon(Icons.arrow_drop_down, size: 18, color: Color(0xFF64748B)),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF475569),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'Cookies notice',
-                  style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -508,7 +389,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Email / NIM Field (styled like image 1's "2407411069")
+        // Email / NIM Field
         const Text(
           'Email Mahasiswa',
           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
@@ -552,7 +433,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14),
           decoration: InputDecoration(
             filled: true,
-            fillColor: const Color(0xFFEBF3FC), // subtle blue tint matching image 1
+            fillColor: const Color(0xFFEBF3FC),
             hintText: '••••••••',
             hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -578,14 +459,14 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             ),
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 20),
 
-        // Primary Blue Button "LOG IN" (matching Image 1)
+        // Primary Blue Button "LOG IN"
         SizedBox(
-          height: 44,
+          height: 46,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0060B6), // Official PNJ Blue
+              backgroundColor: const Color(0xFF0060B6),
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
@@ -601,26 +482,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     'Masuk ke TugasKu',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.5),
                   ),
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // "Lost password?" link matching Image 1
-        Align(
-          alignment: Alignment.centerLeft,
-          child: InkWell(
-            onTap: _showForgotPasswordDialog,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                'Lost password?',
-                style: TextStyle(
-                  color: Color(0xFF0060B6),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
           ),
         ),
       ],
@@ -693,11 +554,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
 
         // Register Button
         SizedBox(
-          height: 44,
+          height: 46,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF0060B6),
