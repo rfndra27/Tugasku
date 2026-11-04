@@ -18,34 +18,41 @@ class NotificationService {
   Future<void> init() async {
     if (_isInitialized) return;
 
-    tz.initializeTimeZones();
+    if (kIsWeb) {
+      _isInitialized = true;
+      return;
+    }
 
-    const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    try {
+      tz.initializeTimeZones();
 
-    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+      const AndroidInitializationSettings androidSettings =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const InitializationSettings initSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
+      const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
 
-    await _notificationsPlugin.initialize(settings: initSettings);
+      const InitializationSettings initSettings = InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      );
 
-    // Request permissions for Android 13+
-    if (!kIsWeb) {
+      await _notificationsPlugin.initialize(settings: initSettings);
+
+      // Request permissions for Android 13+
       if (Platform.isAndroid) {
         final androidImpl = _notificationsPlugin
             .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
         await androidImpl?.requestNotificationsPermission();
       }
-    }
 
-    _isInitialized = true;
+      _isInitialized = true;
+    } catch (e) {
+      debugPrint('NotificationService init error: $e');
+    }
   }
 
   /// Generates a unique notification ID base from taskId hashCode

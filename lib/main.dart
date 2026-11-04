@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart' hide FirebaseService;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +18,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Indonesian date formatting for intl
-  await initializeDateFormatting('id_ID', null);
+  try {
+    await initializeDateFormatting('id_ID', null);
+  } catch (e) {
+    debugPrint('Date formatting init notice: $e');
+  }
 
   // Initialize Firebase with platform options
   try {
@@ -28,8 +33,14 @@ void main() async {
     debugPrint('Firebase init notice: $e');
   }
 
-  // Initialize local notifications service
-  await NotificationService().init();
+  // Initialize local notifications service (non-web only)
+  if (!kIsWeb) {
+    try {
+      await NotificationService().init();
+    } catch (e) {
+      debugPrint('Notification init notice: $e');
+    }
+  }
 
   final firebaseService = FirebaseService();
 
@@ -68,6 +79,10 @@ class TugasKuApp extends StatelessWidget {
                 child: CircularProgressIndicator(),
               ),
             );
+          }
+
+          if (snapshot.hasError) {
+            return AuthScreen(firebaseService: firebaseService);
           }
 
           final user = snapshot.data;

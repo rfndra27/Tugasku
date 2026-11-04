@@ -27,9 +27,29 @@ class FirebaseService {
   FirebaseFunctions get _functions => _customFunctions ?? FirebaseFunctions.instance;
 
   // Auth getters
-  User? get currentUser => _auth.currentUser;
-  String? get currentUserId => _auth.currentUser?.uid;
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  User? get currentUser {
+    try {
+      return _auth.currentUser;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  String? get currentUserId {
+    try {
+      return _auth.currentUser?.uid;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Stream<User?> get authStateChanges {
+    try {
+      return _auth.authStateChanges();
+    } catch (e) {
+      return Stream<User?>.value(null);
+    }
+  }
 
   // ----------------------------------------------------
   // AUTHENTICATION & PROFILE
