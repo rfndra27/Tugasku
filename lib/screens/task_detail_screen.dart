@@ -62,7 +62,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: AppConstants.cardColor,
+            backgroundColor: Theme.of(context).cardColor,
             content: Text('Berhasil memecah tugas menjadi ${result.data!.length} subtask!', style: const TextStyle(color: AppConstants.textPrimaryColor)),
           ),
         );
@@ -71,7 +71,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: AppConstants.cardColor,
+            backgroundColor: Theme.of(context).cardColor,
             content: Text(result.errorMessage ?? 'Gagal memecah tugas.', style: const TextStyle(color: AppConstants.errorColor)),
           ),
         );
@@ -83,7 +83,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppConstants.cardColor,
+        backgroundColor: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: AppConstants.borderSubtleColor),
@@ -112,7 +112,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppConstants.cardColor,
+        backgroundColor: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: AppConstants.borderSubtleColor),
@@ -192,7 +192,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     return ConfettiOverlay(
       controller: _confettiController,
       child: Scaffold(
-        backgroundColor: AppConstants.scaffoldBackgroundColor,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text('Detail Tugas'),
           actions: [
@@ -202,7 +202,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    backgroundColor: AppConstants.cardColor,
+                    backgroundColor: Theme.of(context).cardColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                       side: const BorderSide(color: AppConstants.borderSubtleColor),
@@ -241,7 +241,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: AppConstants.cardColor,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppConstants.borderSubtleColor),
                   ),
@@ -397,7 +397,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: AppConstants.cardColor,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: AppConstants.borderSubtleColor),
                     ),
@@ -488,7 +488,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          backgroundColor: AppConstants.cardColor,
+                                          backgroundColor: Theme.of(context).cardColor,
                                           content: Text(e.toString(), style: const TextStyle(color: AppConstants.errorColor)),
                                         ),
                                       );
@@ -518,7 +518,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            backgroundColor: AppConstants.cardColor,
+                            backgroundColor: Theme.of(context).cardColor,
                             content: Text(
                               '🎉 Selamat! Tugas selesai! Streak bertambah menjadi ${result['current_streak'] ?? 1} hari!',
                               style: const TextStyle(color: AppConstants.textPrimaryColor),

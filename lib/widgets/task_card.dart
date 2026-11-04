@@ -41,7 +41,7 @@ class TaskCardWidget extends StatelessWidget {
           return await showDialog<bool>(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  backgroundColor: AppConstants.cardColor,
+                  backgroundColor: Theme.of(context).cardColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                     side: const BorderSide(color: AppConstants.borderSubtleColor),

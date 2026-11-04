@@ -28,12 +28,12 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: AppConstants.cardColor,
+          backgroundColor: Theme.of(ctx).cardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: const BorderSide(color: AppConstants.borderSubtleColor),
           ),
-          title: const Text('Tambah Jadwal Kuliah', style: TextStyle(color: AppConstants.textPrimaryColor)),
+          title: Text('Tambah Jadwal Kuliah', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -41,25 +41,25 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
               children: [
                 TextField(
                   controller: courseController,
-                  style: const TextStyle(color: AppConstants.textPrimaryColor),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
                   decoration: const InputDecoration(labelText: 'Nama Mata Kuliah', hintText: 'Algoritma & Struktur Data'),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: roomController,
-                  style: const TextStyle(color: AppConstants.textPrimaryColor),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
                   decoration: const InputDecoration(labelText: 'Ruangan / Lab', hintText: 'Lab Komputer 302'),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<int>(
                   initialValue: selectedDay,
-                  dropdownColor: AppConstants.cardColor,
-                  style: const TextStyle(color: AppConstants.textPrimaryColor),
+                  dropdownColor: Theme.of(ctx).cardColor,
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
                   decoration: const InputDecoration(labelText: 'Hari Kuliah'),
                   items: List.generate(7, (index) {
                     return DropdownMenuItem(
                       value: index + 1,
-                      child: Text(_dayLabels[index], style: const TextStyle(color: AppConstants.textPrimaryColor)),
+                      child: Text(_dayLabels[index], style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
                     );
                   }),
                   onChanged: (val) {
@@ -78,9 +78,9 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
                         child: Text('${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}'),
                       ),
                     ),
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Text('-', style: TextStyle(color: AppConstants.textSecondaryColor)),
+                      child: Text('-', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65))),
                     ),
                     Expanded(
                       child: OutlinedButton(
@@ -97,7 +97,7 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal', style: TextStyle(color: AppConstants.textSecondaryColor))),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Batal', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65)))),
             ElevatedButton(
               onPressed: () async {
                 final course = courseController.text.trim();
@@ -130,7 +130,7 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
     final timelineItems = provider.getDailyTimeline(_selectedDate);
 
     return Scaffold(
-      backgroundColor: AppConstants.scaffoldBackgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Jadwal & Celah Belajar'),
         actions: [
@@ -145,7 +145,7 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
         children: [
           // Day selector chips (Senin - Minggu)
           Container(
-            color: AppConstants.scaffoldBackgroundColor,
+            color: Theme.of(context).scaffoldBackgroundColor,
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -159,12 +159,12 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
                       label: Text(_dayLabels[index]),
                       selected: isSelected,
                       selectedColor: AppConstants.primaryColor,
-                      backgroundColor: AppConstants.cardColor,
+                      backgroundColor: Theme.of(context).cardColor,
                       side: BorderSide(
                         color: isSelected ? AppConstants.primaryColor : AppConstants.borderSubtleColor,
                       ),
                       labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : AppConstants.textSecondaryColor,
+                        color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65),
                         fontWeight: FontWeight.bold,
                       ),
                       onSelected: (selected) {
@@ -182,7 +182,7 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
               ),
             ),
           ),
-          const Divider(height: 1, color: AppConstants.borderSubtleColor),
+          Divider(height: 1, color: Theme.of(context).dividerColor),
 
           // Timeline content
           Expanded(
@@ -266,7 +266,7 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppConstants.cardColor,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: item.type == TimelineItemType.studyGapRecommendation

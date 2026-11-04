@@ -23,45 +23,45 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppConstants.cardColor,
+        backgroundColor: Theme.of(ctx).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: AppConstants.borderSubtleColor),
         ),
-        title: const Text('Buat Proyek Kelompok Baru', style: TextStyle(color: AppConstants.textPrimaryColor)),
+        title: Text('Buat Proyek Kelompok Baru', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
-                style: const TextStyle(color: AppConstants.textPrimaryColor),
+                style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
                 decoration: const InputDecoration(labelText: 'Nama Tugas/Proyek', hintText: 'Makalah Kewirausahaan'),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: courseController,
-                style: const TextStyle(color: AppConstants.textPrimaryColor),
+                style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
                 decoration: const InputDecoration(labelText: 'Mata Kuliah', hintText: 'Kewirausahaan'),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: leaderNameController,
-                style: const TextStyle(color: AppConstants.textPrimaryColor),
+                style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
                 decoration: const InputDecoration(labelText: 'Nama Ketua Kelompok', hintText: 'Nama Kamu'),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: leaderPhoneController,
                 keyboardType: TextInputType.phone,
-                style: const TextStyle(color: AppConstants.textPrimaryColor),
+                style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
                 decoration: const InputDecoration(labelText: 'Nomor WhatsApp Ketua', hintText: '08123456789'),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal', style: TextStyle(color: AppConstants.textSecondaryColor))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Batal', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65)))),
           ElevatedButton(
             onPressed: () async {
               final title = titleController.text.trim();
@@ -94,18 +94,18 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: AppConstants.cardColor,
+          backgroundColor: Theme.of(ctx).cardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: const BorderSide(color: AppConstants.borderSubtleColor),
           ),
-          title: const Text('👑 Batas Anggota Gratis', style: TextStyle(color: AppConstants.textPrimaryColor)),
+          title: Text('👑 Batas Anggota Gratis', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
           content: Text(
             'Akun Gratis maksimal memiliki ${AppConstants.freeMaxGroupMembers} anggota per kelompok. Upgrade ke TugasKu Premium untuk anggota tanpa batas!',
-            style: const TextStyle(color: AppConstants.textSecondaryColor),
+            style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65)),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Nanti Saja', style: TextStyle(color: AppConstants.textSecondaryColor))),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Nanti Saja', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65)))),
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(ctx);
@@ -125,25 +125,25 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppConstants.cardColor,
+        backgroundColor: Theme.of(ctx).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: AppConstants.borderSubtleColor),
         ),
-        title: const Text('Tambah Anggota Kelompok', style: TextStyle(color: AppConstants.textPrimaryColor)),
+        title: Text('Tambah Anggota Kelompok', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
-              style: const TextStyle(color: AppConstants.textPrimaryColor),
+              style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
               decoration: const InputDecoration(labelText: 'Nama Lengkap Rekan Tim', hintText: 'Budi Santoso'),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: phoneController,
               keyboardType: TextInputType.phone,
-              style: const TextStyle(color: AppConstants.textPrimaryColor),
+              style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
               decoration: const InputDecoration(labelText: 'Nomor WhatsApp (08xxx)', hintText: '08123456789'),
             ),
           ],
@@ -159,7 +159,7 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
     final isPremium = provider.profile?.isPremium ?? false;
 
     return Scaffold(
-      backgroundColor: AppConstants.scaffoldBackgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Tugas Kelompok & Kolaborasi'),
         actions: [
@@ -205,7 +205,7 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
               itemBuilder: (context, index) {
                 final project = projects[index];
                 return Card(
-                  color: AppConstants.cardColor,
+                  color: Theme.of(context).cardColor,
                   margin: const EdgeInsets.only(bottom: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -323,7 +323,7 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                                         if (context.mounted) {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              backgroundColor: AppConstants.cardColor,
+                                              backgroundColor: Theme.of(context).cardColor,
                                               content: Text(e.toString(), style: const TextStyle(color: AppConstants.errorColor)),
                                             ),
                                           );

@@ -82,7 +82,7 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppConstants.cardColor,
+        backgroundColor: Theme.of(ctx).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: AppConstants.borderSubtleColor),
@@ -170,8 +170,8 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
     if (mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: AppConstants.cardColor,
+        SnackBar(
+          backgroundColor: Theme.of(context).cardColor,
           content: Text('Tugas berhasil disimpan & pengingat telah dijadwalkan!', style: TextStyle(color: AppConstants.textPrimaryColor)),
         ),
       );
@@ -181,8 +181,8 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppConstants.surfaceColor,
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.only(

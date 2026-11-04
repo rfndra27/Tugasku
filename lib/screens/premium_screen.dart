@@ -58,7 +58,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
         setState(() => _isLoadingPayment = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: AppConstants.cardColor,
+            backgroundColor: Theme.of(context).cardColor,
             content: Text('Gagal memulai transaksi: $e', style: const TextStyle(color: AppConstants.errorColor)),
           ),
         );
@@ -74,7 +74,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: AppConstants.cardColor,
+          backgroundColor: Theme.of(context).cardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
             side: const BorderSide(color: AppConstants.borderSubtleColor),
@@ -134,8 +134,8 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         _confettiController.play();
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              backgroundColor: AppConstants.cardColor,
+                            SnackBar(
+                              backgroundColor: Theme.of(context).cardColor,
                               content: Text('🎉 Selamat! Pembayaran QRIS terverifikasi dan Premium Anda telah aktif!', style: TextStyle(color: AppConstants.successColor)),
                             ),
                           );
@@ -144,7 +144,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              backgroundColor: AppConstants.cardColor,
+                              backgroundColor: Theme.of(context).cardColor,
                               content: Text(result['message'] ?? 'Pembayaran belum terdeteksi.', style: const TextStyle(color: AppConstants.warningColor)),
                             ),
                           );
@@ -174,7 +174,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
     return ConfettiOverlay(
       controller: _confettiController,
       child: Scaffold(
-        backgroundColor: AppConstants.scaffoldBackgroundColor,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text('TugasKu Premium 👑'),
         ),

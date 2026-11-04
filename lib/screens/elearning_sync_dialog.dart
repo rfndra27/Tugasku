@@ -96,7 +96,7 @@ class _ElearningSyncDialogState extends State<ElearningSyncDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: AppConstants.cardColor,
+      backgroundColor: Theme.of(context).cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: const BorderSide(color: AppConstants.borderSubtleColor),

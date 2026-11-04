@@ -115,7 +115,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppConstants.cardColor,
+        backgroundColor: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: AppConstants.borderSubtleColor),
@@ -147,7 +147,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     final remainingQuota = profile?.remainingAiQuota ?? AppConstants.freeAiMonthlyQuota;
 
     return Scaffold(
-      backgroundColor: AppConstants.scaffoldBackgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Asisten TugasKu AI ✨'),
         actions: [
@@ -231,7 +231,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
           // Quick Suggestion Chips
           Container(
-            color: AppConstants.scaffoldBackgroundColor,
+            color: Theme.of(context).scaffoldBackgroundColor,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -241,7 +241,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                     padding: const EdgeInsets.only(right: 8),
                     child: ActionChip(
                       label: Text(chipText, style: const TextStyle(fontSize: 12, color: AppConstants.textPrimaryColor)),
-                      backgroundColor: AppConstants.cardColor,
+                      backgroundColor: Theme.of(context).cardColor,
                       side: const BorderSide(color: AppConstants.borderSubtleColor),
                       onPressed: () => _sendMessage(chipText),
                     ),
@@ -253,7 +253,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
           // Input field
           Container(
-            color: AppConstants.surfaceColor,
+            color: Theme.of(context).colorScheme.surface,
             padding: EdgeInsets.only(
               left: 16,
               right: 16,
