@@ -1,3 +1,4 @@
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import '../core/constants.dart';
 import '../services/firebase_service.dart';
@@ -117,17 +118,16 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     return Scaffold(
       body: Stack(
         children: [
-          // 1. Background Campus / Building Image
+          // 1. Campus / PUT Building Background Image
           Positioned.fill(
             child: Image.asset(
               'assets/images/bg_gedung_pnj.jpg',
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                // Fallback elegant background
                 return Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFF0B192C), Color(0xFF1E3E62)],
+                      colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -137,127 +137,56 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             ),
           ),
 
-          // 2. Subtle Dark Scrim Overlay for contrast
+          // 2. Cinematic & Atmospheric Soft Gradient Tint
           Positioned.fill(
             child: Container(
-              color: Colors.black.withValues(alpha: 0.35),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF0F172A).withValues(alpha: 0.78),
+                    const Color(0xFF0F172A).withValues(alpha: 0.55),
+                    const Color(0xFF003E7E).withValues(alpha: 0.45),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
             ),
           ),
 
-          // 3. Responsive Content Layout
+          // 3. Responsive & Ergonomic Layout
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 850;
+                final isWide = constraints.maxWidth >= 900;
 
                 return Center(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: isWide ? 1100 : 440,
+                        maxWidth: isWide ? 1150 : 440,
                       ),
                       child: isWide
                           ? Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                // Left branding area on desktop
+                                // Left Hero Section (Human & Empathetic Student Branding)
                                 Expanded(
                                   child: Padding(
-                                    padding: const EdgeInsets.only(right: 48),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withValues(alpha: 0.9),
-                                            borderRadius: BorderRadius.circular(10),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black.withValues(alpha: 0.2),
-                                                blurRadius: 12,
-                                                offset: const Offset(0, 4),
-                                              ),
-                                            ],
-                                          ),
-                                          child: const Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(Icons.school_rounded, color: Color(0xFF0060B6), size: 24),
-                                              SizedBox(width: 8),
-                                              Text(
-                                                'POLITEKNIK NEGERI JAKARTA',
-                                                style: TextStyle(
-                                                  color: Color(0xFF0F172A),
-                                                  fontWeight: FontWeight.w800,
-                                                  fontSize: 13,
-                                                  letterSpacing: 0.5,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 24),
-                                        const Text(
-                                          'Portal Mahasiswa',
-                                          style: TextStyle(
-                                            fontSize: 48,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                            letterSpacing: -1,
-                                            shadows: [
-                                              Shadow(color: Colors.black54, blurRadius: 16, offset: Offset(0, 4)),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        const Text(
-                                          'Platform Manajemen Deadline & E-Learning Terintegrasi',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w500,
-                                            color: Color(0xFFE2E8F0),
-                                            shadows: [
-                                              Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 2)),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 20),
-                                        Container(
-                                          padding: const EdgeInsets.all(16),
-                                          decoration: BoxDecoration(
-                                            color: Colors.black.withValues(alpha: 0.45),
-                                            borderRadius: BorderRadius.circular(14),
-                                            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                                          ),
-                                          child: const Row(
-                                            children: [
-                                              Icon(Icons.bolt_rounded, color: Color(0xFFFEE75C), size: 28),
-                                              SizedBox(width: 12),
-                                              Expanded(
-                                                child: Text(
-                                                  'Sinkronisasi jadwal e-learning, prioritas tugas otomatis, dan integrasi WhatsApp kelompok.',
-                                                  style: TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                    padding: const EdgeInsets.only(right: 50),
+                                    child: _buildLeftHeroSection(),
                                   ),
                                 ),
 
-                                // Right floating login card
+                                // Right Floating Glassmorphic Login Card
                                 SizedBox(
                                   width: 420,
-                                  child: _buildLoginCard(),
+                                  child: _buildGlassLoginCard(),
                                 ),
                               ],
                             )
-                          : _buildLoginCard(),
+                          : _buildGlassLoginCard(),
                     ),
                   ),
                 );
@@ -269,118 +198,314 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildLoginCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 28,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(28),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header: Clean title and tagline without extra logo box
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
-                AppConstants.appName,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF0F172A),
-                  letterSpacing: -0.3,
-                ),
+  Widget _buildLeftHeroSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Friendly Campus Badge
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
-              SizedBox(height: 4),
+            ],
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.school_rounded, color: Color(0xFF93C5FD), size: 18),
+              SizedBox(width: 8),
               Text(
-                AppConstants.appTagline,
+                'POLITEKNIK NEGERI JAKARTA',
                 style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
                   fontSize: 12,
-                  color: Color(0xFF64748B),
-                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.8,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+        ),
+        const SizedBox(height: 20),
 
-          // Error banner if any
-          if (_errorMessage != null) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              margin: const EdgeInsets.only(bottom: 14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEE2E2),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFFCA5A5)),
+        // Empathetic Main Headline
+        const Text(
+          'Kuliah Lebih Rapi & Santai, Bebas Panik Deadline.',
+          style: TextStyle(
+            fontSize: 38,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            height: 1.2,
+            letterSpacing: -0.8,
+            shadows: [
+              Shadow(color: Colors.black45, blurRadius: 18, offset: Offset(0, 4)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Friendly Subtitle
+        const Text(
+          'Satu tempat asisten cerdas untuk merapikan tugas e-learning, jadwal kuliah harian, dan kerja kelompokmu.',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            color: Color(0xFFE2E8F0),
+            height: 1.5,
+            shadows: [
+              Shadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 2)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // 3 Human Feature Highlights
+        _buildHeroFeatureItem(
+          icon: Icons.timer_outlined,
+          iconColor: const Color(0xFFFBBF24),
+          title: 'Prioritas Otomatis Tanpa Pusing',
+          subtitle: 'Tugas diurutkan otomatis dari yang paling mendesak dan berbobot nilai tinggi.',
+        ),
+        const SizedBox(height: 12),
+        _buildHeroFeatureItem(
+          icon: Icons.auto_awesome_rounded,
+          iconColor: const Color(0xFF60A5FA),
+          title: 'Input Pintar AI Bahasa Indonesia',
+          subtitle: 'Cukup copas pesan tugas dari dosen di WhatsApp, otomatis tercatat rapi.',
+        ),
+        const SizedBox(height: 12),
+        _buildHeroFeatureItem(
+          icon: Icons.chat_bubble_outline_rounded,
+          iconColor: const Color(0xFF34D399),
+          title: 'Pengingat WhatsApp Ramah & Sopan',
+          subtitle: 'Ingatkan teman sekelompok langsung ke WA dengan pesan yang santun.',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeroFeatureItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A).withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: iconColor, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Color(0xFFCBD5E1),
+                    fontSize: 11,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlassLoginCard() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(22),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.96),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.28),
+                blurRadius: 32,
+                offset: const Offset(0, 14),
+                spreadRadius: 2,
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(fontSize: 12, color: Color(0xFFB91C1C), fontWeight: FontWeight.w500),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header: Friendly & Clean Branding
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    AppConstants.appName,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF0F172A),
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    AppConstants.appTagline,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF64748B),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
 
-          // Clean Tab Bar (Masuk / Daftar Akun)
-          Container(
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: BoxDecoration(
-                color: const Color(0xFF0060B6),
-                borderRadius: BorderRadius.circular(6),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF0060B6).withValues(alpha: 0.3),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+              // Friendly Welcoming Message Box
+              Container(
+                margin: const EdgeInsets.only(top: 10, bottom: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDF4),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFBBF7D0)),
+                ),
+                child: const Row(
+                  children: [
+                    Text('👋', style: TextStyle(fontSize: 14)),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Halo, Mahasiswa! Siap atur tugasmu hari ini?',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF166534),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              labelColor: Colors.white,
-              unselectedLabelColor: const Color(0xFF64748B),
-              labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerColor: Colors.transparent,
-              tabs: const [
-                Tab(text: 'Masuk'),
-                Tab(text: 'Daftar Akun'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
+              const SizedBox(height: 8),
 
-          // Tab content
-          AnimatedBuilder(
-            animation: _tabController,
-            builder: (context, _) {
-              return _tabController.index == 0
-                  ? _buildLoginView()
-                  : _buildRegisterView();
-            },
+              // Error banner if any
+              if (_errorMessage != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  margin: const EdgeInsets.only(bottom: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFFECACA)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline_rounded, color: Color(0xFFDC2626), size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF991B1B),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // Soft Pill-Shaped Segmented Tab Switcher
+              Container(
+                height: 38,
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  indicator: BoxDecoration(
+                    color: const Color(0xFF0060B6),
+                    borderRadius: BorderRadius.circular(7),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0060B6).withValues(alpha: 0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  labelColor: Colors.white,
+                  unselectedLabelColor: const Color(0xFF475569),
+                  labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent,
+                  tabs: const [
+                    Tab(text: 'Masuk'),
+                    Tab(text: 'Daftar Akun'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Tab content
+              AnimatedBuilder(
+                animation: _tabController,
+                builder: (context, _) {
+                  return _tabController.index == 0
+                      ? _buildLoginView()
+                      : _buildRegisterView();
+                },
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -392,84 +517,87 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         // Email / NIM Field
         const Text(
           'Email Mahasiswa',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         TextField(
           controller: _loginEmailController,
           keyboardType: TextInputType.emailAddress,
-          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14),
+          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13),
           decoration: InputDecoration(
             filled: true,
-            fillColor: const Color(0xFFF1F5F9),
-            hintText: 'nama@kampus.ac.id / NIM',
-            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            fillColor: const Color(0xFFF8FAFC),
+            hintText: 'nama@kampus.ac.id atau NIM',
+            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+            prefixIcon: const Icon(Icons.alternate_email_rounded, color: Color(0xFF64748B), size: 17),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Color(0xFF0060B6), width: 1.5),
             ),
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 12),
 
         // Password Field
         const Text(
           'Kata Sandi',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         TextField(
           controller: _loginPasswordController,
           obscureText: _obscurePassword,
-          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 14),
+          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13),
           decoration: InputDecoration(
             filled: true,
-            fillColor: const Color(0xFFEBF3FC),
-            hintText: '••••••••',
-            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            fillColor: const Color(0xFFF8FAFC),
+            hintText: 'Masukkan kata sandi',
+            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+            prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF64748B), size: 17),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                 color: const Color(0xFF64748B),
-                size: 20,
+                size: 19,
               ),
               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: Color(0xFFBFDBFE)),
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: Color(0xFFBFDBFE)),
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Color(0xFF0060B6), width: 1.5),
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
 
-        // Primary Blue Button "LOG IN"
+        // Primary Blue Button
         SizedBox(
-          height: 46,
+          height: 44,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF0060B6),
               foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              elevation: 2,
+              shadowColor: const Color(0xFF0060B6).withValues(alpha: 0.35),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: _isLoading ? null : _handleLogin,
             child: _isLoading
@@ -478,9 +606,16 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     width: 20,
                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                   )
-                : const Text(
-                    'Masuk ke TugasKu',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+                : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Masuk ke TugasKu',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward_rounded, size: 16),
+                    ],
                   ),
           ),
         ),
@@ -495,76 +630,87 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         // Full Name
         const Text(
           'Nama Lengkap',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         TextField(
           controller: _regFullNameController,
-          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13),
-          decoration: _inputDecoration(hint: 'Ahmad Mahasiswa'),
+          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 12),
+          decoration: _inputDecoration(
+            hint: 'Ahmad Mahasiswa',
+            icon: Icons.person_outline_rounded,
+          ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
 
         // University Name
         const Text(
           'Nama Kampus / Universitas',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         TextField(
           controller: _regUniversityController,
-          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13),
-          decoration: _inputDecoration(hint: 'Politeknik Negeri Jakarta'),
+          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 12),
+          decoration: _inputDecoration(
+            hint: 'Politeknik Negeri Jakarta',
+            icon: Icons.school_outlined,
+          ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
 
         // Email
         const Text(
           'Email Mahasiswa',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         TextField(
           controller: _regEmailController,
           keyboardType: TextInputType.emailAddress,
-          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13),
-          decoration: _inputDecoration(hint: 'nama@stu.pnj.ac.id'),
+          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 12),
+          decoration: _inputDecoration(
+            hint: 'nama@stu.pnj.ac.id',
+            icon: Icons.alternate_email_rounded,
+          ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
 
         // Password
         const Text(
           'Kata Sandi',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         TextField(
           controller: _regPasswordController,
           obscureText: _obscurePassword,
-          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13),
+          style: const TextStyle(color: Color(0xFF0F172A), fontSize: 12),
           decoration: _inputDecoration(
             hint: 'Minimal 6 karakter',
+            icon: Icons.lock_outline_rounded,
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                 color: const Color(0xFF64748B),
-                size: 20,
+                size: 18,
               ),
               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
             ),
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 14),
 
         // Register Button
         SizedBox(
-          height: 46,
+          height: 42,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF0060B6),
               foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              elevation: 2,
+              shadowColor: const Color(0xFF0060B6).withValues(alpha: 0.35),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: _isLoading ? null : _handleRegister,
             child: _isLoading
@@ -573,9 +719,16 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     width: 20,
                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                   )
-                : const Text(
-                    'Buat Akun Mahasiswa',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Buat Akun Mahasiswa',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.check_circle_outline_rounded, size: 16),
+                    ],
                   ),
           ),
         ),
@@ -583,24 +736,25 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  InputDecoration _inputDecoration({required String hint, Widget? suffixIcon}) {
+  InputDecoration _inputDecoration({required String hint, required IconData icon, Widget? suffixIcon}) {
     return InputDecoration(
       filled: true,
-      fillColor: const Color(0xFFF1F5F9),
+      fillColor: const Color(0xFFF8FAFC),
       hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+      prefixIcon: Icon(icon, color: const Color(0xFF64748B), size: 17),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       suffixIcon: suffixIcon,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: Color(0xFF0060B6), width: 1.5),
       ),
     );
