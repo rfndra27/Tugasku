@@ -137,15 +137,15 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             ),
           ),
 
-          // 2. Cinematic & Atmospheric Soft Gradient Tint
+          // 2. Atmospheric Soft Overlay Tint
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    const Color(0xFF0F172A).withValues(alpha: 0.78),
-                    const Color(0xFF0F172A).withValues(alpha: 0.55),
-                    const Color(0xFF003E7E).withValues(alpha: 0.45),
+                    const Color(0xFF0F172A).withValues(alpha: 0.35),
+                    const Color(0xFF0F172A).withValues(alpha: 0.20),
+                    const Color(0xFF003E7E).withValues(alpha: 0.25),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -160,192 +160,20 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               builder: (context, constraints) {
                 final isWide = constraints.maxWidth >= 900;
 
-                return Center(
+                return Align(
+                  alignment: isWide ? Alignment.centerRight : Alignment.center,
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: isWide ? 1150 : 440,
-                      ),
-                      child: isWide
-                          ? Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                // Left Hero Section (Human & Empathetic Student Branding)
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(right: 50),
-                                    child: _buildLeftHeroSection(),
-                                  ),
-                                ),
-
-                                // Right Floating Glassmorphic Login Card
-                                SizedBox(
-                                  width: 420,
-                                  child: _buildGlassLoginCard(),
-                                ),
-                              ],
-                            )
-                          : _buildGlassLoginCard(),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isWide ? 64 : 20,
+                      vertical: 20,
+                    ),
+                    child: SizedBox(
+                      width: 420,
+                      child: _buildGlassLoginCard(),
                     ),
                   ),
                 );
               },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLeftHeroSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Friendly Campus Badge
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.school_rounded, color: Color(0xFF93C5FD), size: 18),
-              SizedBox(width: 8),
-              Text(
-                'POLITEKNIK NEGERI JAKARTA',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // Empathetic Main Headline
-        const Text(
-          'Kuliah Lebih Rapi & Santai, Bebas Panik Deadline.',
-          style: TextStyle(
-            fontSize: 38,
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
-            height: 1.2,
-            letterSpacing: -0.8,
-            shadows: [
-              Shadow(color: Colors.black45, blurRadius: 18, offset: Offset(0, 4)),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-
-        // Friendly Subtitle
-        const Text(
-          'Satu tempat asisten cerdas untuk merapikan tugas e-learning, jadwal kuliah harian, dan kerja kelompokmu.',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-            color: Color(0xFFE2E8F0),
-            height: 1.5,
-            shadows: [
-              Shadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 2)),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        // 3 Human Feature Highlights
-        _buildHeroFeatureItem(
-          icon: Icons.timer_outlined,
-          iconColor: const Color(0xFFFBBF24),
-          title: 'Prioritas Otomatis Tanpa Pusing',
-          subtitle: 'Tugas diurutkan otomatis dari yang paling mendesak dan berbobot nilai tinggi.',
-        ),
-        const SizedBox(height: 12),
-        _buildHeroFeatureItem(
-          icon: Icons.auto_awesome_rounded,
-          iconColor: const Color(0xFF60A5FA),
-          title: 'Input Pintar AI Bahasa Indonesia',
-          subtitle: 'Cukup copas pesan tugas dari dosen di WhatsApp, otomatis tercatat rapi.',
-        ),
-        const SizedBox(height: 12),
-        _buildHeroFeatureItem(
-          icon: Icons.chat_bubble_outline_rounded,
-          iconColor: const Color(0xFF34D399),
-          title: 'Pengingat WhatsApp Ramah & Sopan',
-          subtitle: 'Ingatkan teman sekelompok langsung ke WA dengan pesan yang santun.',
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeroFeatureItem({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(7),
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: iconColor, size: 18),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Color(0xFFCBD5E1),
-                    fontSize: 11,
-                    height: 1.35,
-                  ),
-                ),
-              ],
             ),
           ),
         ],
