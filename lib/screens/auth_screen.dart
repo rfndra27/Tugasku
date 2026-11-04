@@ -229,34 +229,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   ),
                 ],
               ),
-
-              // Friendly Welcoming Message Box
-              Container(
-                margin: const EdgeInsets.only(top: 10, bottom: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0FDF4),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFBBF7D0)),
-                ),
-                child: const Row(
-                  children: [
-                    Text('👋', style: TextStyle(fontSize: 14)),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Halo, Mahasiswa! Siap atur tugasmu hari ini?',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF166534),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
 
               // Error banner if any
               if (_errorMessage != null) ...[
