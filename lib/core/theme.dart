@@ -25,16 +25,16 @@ class AppTheme {
         displayColor: AppConstants.textPrimaryColor,
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppConstants.scaffoldBackgroundColor,
+        backgroundColor: AppConstants.primaryColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleTextStyle: GoogleFonts.plusJakartaSans(
-          color: AppConstants.textPrimaryColor,
+          color: Colors.white,
           fontSize: 18,
           fontWeight: FontWeight.w700,
         ),
-        iconTheme: const IconThemeData(color: AppConstants.textPrimaryColor),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       cardTheme: CardThemeData(
         color: AppConstants.cardColor,
@@ -63,14 +63,14 @@ class AppTheme {
         ),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: AppConstants.surfaceColor,
-        modalBackgroundColor: AppConstants.surfaceColor,
+        backgroundColor: AppConstants.cardColor,
+        modalBackgroundColor: AppConstants.cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: AppConstants.scaffoldBackgroundColor,
+        backgroundColor: AppConstants.surfaceColor,
         elevation: 0,
         indicatorColor: AppConstants.primaryColor.withValues(alpha: 0.35),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
@@ -89,7 +89,7 @@ class AppTheme {
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: Colors.white, size: 22);
+            return const IconThemeData(color: AppConstants.primaryColor, size: 22);
           }
           return const IconThemeData(color: AppConstants.textSecondaryColor, size: 22);
         }),
@@ -169,6 +169,62 @@ class AppTheme {
       dividerTheme: const DividerThemeData(
         color: AppConstants.borderSubtleColor,
         thickness: 1,
+      ),
+    );
+  }
+
+  static ThemeData get lightTheme {
+    final baseLight = ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      colorScheme: ColorScheme.light(
+        primary: AppConstants.secondaryColor,
+        secondary: AppConstants.primaryColor,
+        surface: Colors.white,
+        error: AppConstants.errorColor,
+      ),
+      scaffoldBackgroundColor: const Color(0xFFF4F7FC),
+    );
+
+    return baseLight.copyWith(
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(baseLight.textTheme).apply(
+        bodyColor: const Color(0xFF17324D),
+        displayColor: const Color(0xFF17324D),
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppConstants.secondaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        titleTextStyle: GoogleFonts.plusJakartaSans(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      cardTheme: CardThemeData(
+        color: Colors.white,
+        elevation: 1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: Colors.white,
+        indicatorColor: AppConstants.primaryColor.withValues(alpha: 0.18),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFFF7FAFF),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFD8E4F2)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFD8E4F2)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppConstants.primaryColor, width: 1.5),
+        ),
       ),
     );
   }

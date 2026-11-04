@@ -57,8 +57,21 @@ void main() async {
   );
 }
 
-class TugasKuApp extends StatelessWidget {
+class TugasKuApp extends StatefulWidget {
   const TugasKuApp({super.key});
+
+  @override
+  State<TugasKuApp> createState() => _TugasKuAppState();
+}
+
+class _TugasKuAppState extends State<TugasKuApp> {
+  ThemeMode _themeMode = ThemeMode.dark;
+
+  void _toggleTheme() {
+    setState(() {
+      _themeMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,36 +80,52 @@ class TugasKuApp extends StatelessWidget {
     return MaterialApp(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark,
-      home: StreamBuilder<User?>(
-        stream: firebaseService.authStateChanges,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
+      themeMode: _themeMode,
+      home: AppConstants.useDemoData
+          ? Builder(
+              builder: (context) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Provider.of<TaskProvider>(context, listen: false).initialize('demo-user');
+                });
+                return HomeScreen(
+                  firebaseService: firebaseService,
+                  isDarkMode: _themeMode == ThemeMode.dark,
+                  onToggleTheme: _toggleTheme,
+                );
+              },
+            )
+          : StreamBuilder<User?>(
+              stream: firebaseService.authStateChanges,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Scaffold(
+                    body: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
 
-          if (snapshot.hasError) {
-            return AuthScreen(firebaseService: firebaseService);
-          }
+                if (snapshot.hasError) {
+                  return AuthScreen(firebaseService: firebaseService);
+                }
 
-          final user = snapshot.data;
-          if (user != null) {
-            // Initialize provider with the logged-in user's ID
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Provider.of<TaskProvider>(context, listen: false).initialize(user.uid);
-            });
-            return HomeScreen(firebaseService: firebaseService);
-          } else {
-            return AuthScreen(firebaseService: firebaseService);
-          }
-        },
-      ),
+                final user = snapshot.data;
+                if (user != null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Provider.of<TaskProvider>(context, listen: false).initialize(user.uid);
+                  });
+                  return HomeScreen(
+                    firebaseService: firebaseService,
+                    isDarkMode: _themeMode == ThemeMode.dark,
+                    onToggleTheme: _toggleTheme,
+                  );
+                } else {
+                  return AuthScreen(firebaseService: firebaseService);
+                }
+              },
+            ),
     );
   }
 }

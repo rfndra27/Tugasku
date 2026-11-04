@@ -237,20 +237,26 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
 
     switch (item.type) {
       case TimelineItemType.classSchedule:
-        cardColor = const Color(0xFF1B2E24); // Dark Mint
+        cardColor = AppConstants.elevatedSurfaceColor;
         accentColor = AppConstants.successColor;
         icon = Icons.school_rounded;
         badgeText = 'Kuliah';
         break;
+      case TimelineItemType.personalAgenda:
+        cardColor = const Color(0xFF12302E);
+        accentColor = const Color(0xFF2DD4BF);
+        icon = Icons.person_outline_rounded;
+        badgeText = 'Agenda Pribadi';
+        break;
       case TimelineItemType.taskDeadline:
-        cardColor = const Color(0xFF2E1B19); // Dark Orange/Red
-        accentColor = const Color(0xFFFF9E7A);
+        cardColor = const Color(0xFF332515);
+        accentColor = AppConstants.warningColor;
         icon = Icons.alarm_rounded;
         badgeText = 'Deadline';
         break;
       case TimelineItemType.studyGapRecommendation:
-        cardColor = const Color(0xFF232847); // Dark Blurple
-        accentColor = const Color(0xFF8B98F8);
+        cardColor = AppConstants.elevatedSurfaceColor;
+        accentColor = AppConstants.primaryColor;
         icon = Icons.bolt_rounded;
         badgeText = 'Rekomendasi Celah Belajar';
         break;
@@ -327,6 +333,13 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
                     ],
                   ],
                 ),
+                if (item.hasConflict) ...[
+                  const SizedBox(height: 6),
+                  const Text(
+                    '⚠ Konflik jadwal terdeteksi',
+                    style: TextStyle(color: AppConstants.errorColor, fontSize: 11, fontWeight: FontWeight.w700),
+                  ),
+                ],
                 const SizedBox(height: 6),
                 Text(
                   item.title,

@@ -35,6 +35,68 @@ class ICalEvent {
 class ICalService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  Future<ICalSyncResult> syncIcalContent({
+    required String userId,
+    required String icsContent,
+    String platformName = 'E-Learning',
+  }) async {
+    final events = parseIcsContent(icsContent);
+    if (events.isEmpty) {
+      throw Exception('Tidak ditemukan event valid pada file kalender.');
+    }
+
+    final existing = await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('tasks')
+        .where('source', isEqualTo: AppConstants.sourceElearningIcal)
+        .get();
+    final existingUids = <String, DocumentSnapshot>{};
+    for (final doc in existing.docs) {
+      final uid = doc.data()['external_uid']?.toString();
+      if (uid != null && uid.isNotEmpty) existingUids[uid] = doc;
+    }
+
+    var newTasks = 0;
+    var updatedTasks = 0;
+    for (final event in events) {
+      final old = existingUids[event.uid];
+      if (old != null) {
+        await old.reference.update({
+          'title': event.summary,
+          'description': event.description,
+          'deadline': Timestamp.fromDate(event.deadline),
+          'priority_score': PriorityCalculator.calculatePriority(
+            deadline: event.deadline,
+            weightPercentage: 10,
+          ),
+        });
+        updatedTasks++;
+        continue;
+      }
+      final doc = _firestore.collection('users').doc(userId).collection('tasks').doc();
+      final task = TaskModel(
+        id: doc.id,
+        userId: userId,
+        courseName: platformName,
+        title: event.summary,
+        description: event.description,
+        deadline: event.deadline,
+        source: AppConstants.sourceElearningIcal,
+        externalUid: event.uid,
+      );
+      await doc.set(task.toJson());
+      newTasks++;
+    }
+
+    return ICalSyncResult(
+      newTasksCount: newTasks,
+      updatedTasksCount: updatedTasks,
+      totalEvents: events.length,
+      message: 'Impor selesai: $newTasks tugas baru, $updatedTasks tugas diperbarui.',
+    );
+  }
+
   /// Fetches .ics from url and synchronizes tasks into users/{userId}/tasks
   Future<ICalSyncResult> syncElearningCalendar({
     required String userId,
@@ -269,4 +331,3 @@ class ICalService {
         .replaceAll(r'\\', r'\');
   }
 }
-

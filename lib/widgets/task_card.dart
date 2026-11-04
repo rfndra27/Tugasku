@@ -20,6 +20,7 @@ class TaskCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final urgency = PriorityCalculator.getUrgencyLevel(
       deadline: task.deadline,
       priorityScore: task.priorityScore,
@@ -111,7 +112,7 @@ class TaskCardWidget extends StatelessWidget {
         ),
       ),
       child: Card(
-        color: AppConstants.cardColor,
+        color: theme.cardColor,
         margin: const EdgeInsets.symmetric(vertical: 6),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
@@ -140,7 +141,7 @@ class TaskCardWidget extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
-                          color: task.isCompleted ? AppConstants.textSecondaryColor : AppConstants.primaryColor,
+                          color: task.isCompleted ? theme.colorScheme.onSurface.withValues(alpha: 0.6) : AppConstants.primaryColor,
                           letterSpacing: 0.5,
                         ),
                         maxLines: 1,
@@ -198,7 +199,7 @@ class TaskCardWidget extends StatelessWidget {
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     decoration: task.isCompleted ? TextDecoration.lineThrough : null,
-                    color: task.isCompleted ? AppConstants.textSecondaryColor : AppConstants.textPrimaryColor,
+                    color: task.isCompleted ? theme.colorScheme.onSurface.withValues(alpha: 0.6) : theme.colorScheme.onSurface,
                   ),
                 ),
 
@@ -208,7 +209,7 @@ class TaskCardWidget extends StatelessWidget {
                     task.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, color: AppConstants.textSecondaryColor),
+                    style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withValues(alpha: 0.65)),
                   ),
                 ],
 

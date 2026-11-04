@@ -4,6 +4,7 @@ import '../models/task_model.dart';
 
 enum TimelineItemType {
   classSchedule,
+  personalAgenda,
   taskDeadline,
   studyGapRecommendation,
 }
@@ -18,6 +19,7 @@ class TimelineItem {
   final TaskModel? recommendedTask;
   final ClassScheduleModel? classSchedule;
   final TaskModel? deadlineTask;
+  final bool hasConflict;
 
   TimelineItem({
     required this.type,
@@ -29,6 +31,7 @@ class TimelineItem {
     this.recommendedTask,
     this.classSchedule,
     this.deadlineTask,
+    this.hasConflict = false,
   });
 }
 
@@ -37,6 +40,7 @@ class SmartScheduleService {
   List<TimelineItem> generateDailyTimeline({
     required DateTime selectedDate,
     required List<ClassScheduleModel> schedules,
+    required List<PersonalAgendaModel> personalAgendas,
     required List<TaskModel> activeTasks,
   }) {
     final List<TimelineItem> items = [];
@@ -45,8 +49,17 @@ class SmartScheduleService {
     // 1. Filter class schedules for the selected day of week
     final todaySchedules = schedules.where((s) => s.dayOfWeek == dayOfWeek).toList();
     todaySchedules.sort((a, b) => a.startTotalMinutes.compareTo(b.startTotalMinutes));
+    final todayAgendas = personalAgendas.where((agenda) {
+      return agenda.date.year == selectedDate.year &&
+          agenda.date.month == selectedDate.month &&
+          agenda.date.day == selectedDate.day;
+    }).toList();
 
     for (final schedule in todaySchedules) {
+      final hasConflict = todaySchedules.any((other) =>
+          other.id != schedule.id &&
+          other.startTotalMinutes < schedule.endTotalMinutes &&
+          schedule.startTotalMinutes < other.endTotalMinutes);
       items.add(TimelineItem(
         type: TimelineItemType.classSchedule,
         title: schedule.courseName,
@@ -55,6 +68,25 @@ class SmartScheduleService {
         startMinutes: schedule.startTotalMinutes,
         endMinutes: schedule.endTotalMinutes,
         classSchedule: schedule,
+        hasConflict: hasConflict ||
+            todayAgendas.any((agenda) =>
+                agenda.startTotalMinutes < schedule.endTotalMinutes &&
+                schedule.startTotalMinutes < agenda.endTotalMinutes),
+      ));
+    }
+
+    for (final agenda in todayAgendas) {
+      final hasConflict = todaySchedules.any((schedule) =>
+          agenda.startTotalMinutes < schedule.endTotalMinutes &&
+          schedule.startTotalMinutes < agenda.endTotalMinutes);
+      items.add(TimelineItem(
+        type: TimelineItemType.personalAgenda,
+        title: agenda.title,
+        subtitle: 'Agenda pribadi',
+        timeRange: '${agenda.startTime} - ${agenda.endTime}',
+        startMinutes: agenda.startTotalMinutes,
+        endMinutes: agenda.endTotalMinutes,
+        hasConflict: hasConflict,
       ));
     }
 
@@ -134,4 +166,3 @@ class SmartScheduleService {
     return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}';
   }
 }
-

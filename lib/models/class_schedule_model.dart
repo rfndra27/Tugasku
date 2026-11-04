@@ -4,9 +4,9 @@ class ClassScheduleModel {
   final String id;
   final String userId;
   final String courseName;
-  final int dayOfWeek; // 1 = Senin, 2 = Selasa, ..., 7 = Minggu
-  final String startTime; // "HH:mm" e.g. "08:00"
-  final String endTime; // "HH:mm" e.g. "09:40"
+  final int dayOfWeek;
+  final String startTime;
+  final String endTime;
   final String room;
 
   ClassScheduleModel({
@@ -20,44 +20,18 @@ class ClassScheduleModel {
   });
 
   String get dayName {
-    switch (dayOfWeek) {
-      case 1:
-        return 'Senin';
-      case 2:
-        return 'Selasa';
-      case 3:
-        return 'Rabu';
-      case 4:
-        return 'Kamis';
-      case 5:
-        return 'Jumat';
-      case 6:
-        return 'Sabtu';
-      case 7:
-        return 'Minggu';
-      default:
-        return 'Hari';
-    }
+    const names = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    return dayOfWeek >= 1 && dayOfWeek <= 7 ? names[dayOfWeek - 1] : 'Hari';
   }
 
-  int get startTotalMinutes {
-    final parts = startTime.split(':');
-    if (parts.length >= 2) {
-      final hour = int.tryParse(parts[0]) ?? 0;
-      final minute = int.tryParse(parts[1]) ?? 0;
-      return hour * 60 + minute;
-    }
-    return 0;
-  }
+  int get startTotalMinutes => _toMinutes(startTime);
+  int get endTotalMinutes => _toMinutes(endTime);
 
-  int get endTotalMinutes {
-    final parts = endTime.split(':');
-    if (parts.length >= 2) {
-      final hour = int.tryParse(parts[0]) ?? 0;
-      final minute = int.tryParse(parts[1]) ?? 0;
-      return hour * 60 + minute;
-    }
-    return 0;
+  int _toMinutes(String value) {
+    final parts = value.split(':');
+    final hour = int.tryParse(parts.first) ?? 0;
+    final minute = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
+    return hour * 60 + minute;
   }
 
   ClassScheduleModel copyWith({
@@ -80,24 +54,22 @@ class ClassScheduleModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'user_id': userId,
-      'course_name': courseName,
-      'day_of_week': dayOfWeek,
-      'start_time': startTime,
-      'end_time': endTime,
-      'room': room,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_id': userId,
+        'course_name': courseName,
+        'day_of_week': dayOfWeek,
+        'start_time': startTime,
+        'end_time': endTime,
+        'room': room,
+      };
 
   factory ClassScheduleModel.fromJson(Map<String, dynamic> json, {String? docId}) {
     return ClassScheduleModel(
       id: docId ?? json['id']?.toString() ?? '',
       userId: json['user_id']?.toString() ?? '',
       courseName: json['course_name']?.toString() ?? '',
-      dayOfWeek: (json['day_of_week'] is num) ? (json['day_of_week'] as num).toInt() : 1,
+      dayOfWeek: json['day_of_week'] is num ? (json['day_of_week'] as num).toInt() : 1,
       startTime: json['start_time']?.toString() ?? '08:00',
       endTime: json['end_time']?.toString() ?? '10:00',
       room: json['room']?.toString() ?? '',
@@ -105,8 +77,37 @@ class ClassScheduleModel {
   }
 
   factory ClassScheduleModel.fromFirestore(DocumentSnapshot doc) {
-    final data = (doc.data() as Map<String, dynamic>?) ?? {};
-    return ClassScheduleModel.fromJson(data, docId: doc.id);
+    return ClassScheduleModel.fromJson(
+      (doc.data() as Map<String, dynamic>?) ?? {},
+      docId: doc.id,
+    );
   }
 }
 
+class PersonalAgendaModel {
+  final String id;
+  final String userId;
+  final String title;
+  final DateTime date;
+  final String startTime;
+  final String endTime;
+
+  PersonalAgendaModel({
+    required this.id,
+    required this.userId,
+    required this.title,
+    required this.date,
+    required this.startTime,
+    required this.endTime,
+  });
+
+  int get startTotalMinutes => _toMinutes(startTime);
+  int get endTotalMinutes => _toMinutes(endTime);
+
+  int _toMinutes(String value) {
+    final parts = value.split(':');
+    final hour = int.tryParse(parts.first) ?? 0;
+    final minute = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
+    return hour * 60 + minute;
+  }
+}

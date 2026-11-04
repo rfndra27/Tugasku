@@ -4,8 +4,8 @@ class GroupMemberModel {
   final String id;
   final String projectId;
   final String name;
-  final String phone; // formatted as 628xxx
-  final String role; // 'leader' | 'member'
+  final String phone;
+  final String role;
   final DateTime joinedAt;
 
   GroupMemberModel({
@@ -37,38 +37,37 @@ class GroupMemberModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'project_id': projectId,
-      'name': name,
-      'phone': phone,
-      'role': role,
-      'joined_at': Timestamp.fromDate(joinedAt),
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'project_id': projectId,
+        'name': name,
+        'phone': phone,
+        'role': role,
+        'joined_at': Timestamp.fromDate(joinedAt),
+      };
 
   factory GroupMemberModel.fromJson(Map<String, dynamic> json, {String? docId}) {
-    DateTime parseDate(dynamic val) {
-      if (val is Timestamp) return val.toDate();
-      if (val is DateTime) return val;
-      if (val is String) return DateTime.tryParse(val) ?? DateTime.now();
-      return DateTime.now();
-    }
-
+    final value = json['joined_at'];
+    final joinedAt = value is Timestamp
+        ? value.toDate()
+        : value is DateTime
+            ? value
+            : DateTime.tryParse(value?.toString() ?? '') ?? DateTime.now();
     return GroupMemberModel(
       id: docId ?? json['id']?.toString() ?? '',
       projectId: json['project_id']?.toString() ?? '',
       name: json['name']?.toString() ?? 'Anggota',
       phone: json['phone']?.toString() ?? '',
       role: json['role']?.toString() ?? 'member',
-      joinedAt: parseDate(json['joined_at']),
+      joinedAt: joinedAt,
     );
   }
 
   factory GroupMemberModel.fromFirestore(DocumentSnapshot doc) {
-    final data = (doc.data() as Map<String, dynamic>?) ?? {};
-    return GroupMemberModel.fromJson(data, docId: doc.id);
+    return GroupMemberModel.fromJson(
+      (doc.data() as Map<String, dynamic>?) ?? {},
+      docId: doc.id,
+    );
   }
 }
 
@@ -113,39 +112,100 @@ class GroupProjectModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'user_id': userId,
-      'title': title,
-      'course_name': courseName,
-      'invite_code': inviteCode,
-      'created_at': Timestamp.fromDate(createdAt),
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_id': userId,
+        'title': title,
+        'course_name': courseName,
+        'invite_code': inviteCode,
+        'created_at': Timestamp.fromDate(createdAt),
+      };
 
-  factory GroupProjectModel.fromJson(Map<String, dynamic> json, {String? docId, List<GroupMemberModel>? members}) {
-    DateTime parseDate(dynamic val) {
-      if (val is Timestamp) return val.toDate();
-      if (val is DateTime) return val;
-      if (val is String) return DateTime.tryParse(val) ?? DateTime.now();
-      return DateTime.now();
-    }
-
+  factory GroupProjectModel.fromJson(
+    Map<String, dynamic> json, {
+    String? docId,
+    List<GroupMemberModel>? members,
+  }) {
+    final value = json['created_at'];
+    final createdAt = value is Timestamp
+        ? value.toDate()
+        : value is DateTime
+            ? value
+            : DateTime.tryParse(value?.toString() ?? '') ?? DateTime.now();
     return GroupProjectModel(
       id: docId ?? json['id']?.toString() ?? '',
       userId: json['user_id']?.toString() ?? '',
       title: json['title']?.toString() ?? 'Tugas Kelompok',
       courseName: json['course_name']?.toString() ?? 'Mata Kuliah',
       inviteCode: json['invite_code']?.toString() ?? '',
-      createdAt: parseDate(json['created_at']),
+      createdAt: createdAt,
       members: members ?? const [],
     );
   }
 
-  factory GroupProjectModel.fromFirestore(DocumentSnapshot doc, {List<GroupMemberModel>? members}) {
-    final data = (doc.data() as Map<String, dynamic>?) ?? {};
-    return GroupProjectModel.fromJson(data, docId: doc.id, members: members);
+  factory GroupProjectModel.fromFirestore(
+    DocumentSnapshot doc, {
+    List<GroupMemberModel>? members,
+  }) {
+    return GroupProjectModel.fromJson(
+      (doc.data() as Map<String, dynamic>?) ?? {},
+      docId: doc.id,
+      members: members,
+    );
   }
 }
 
+enum DeliverableStatus { pending, inProgress, completed }
+
+class GroupDeliverableModel {
+  final String id;
+  final String projectId;
+  final String title;
+  final String type;
+  final int priority;
+  final String ownerName;
+  final String ownerPhone;
+  final int progressPercent;
+  final DeliverableStatus status;
+
+  GroupDeliverableModel({
+    required this.id,
+    required this.projectId,
+    required this.title,
+    required this.type,
+    required this.priority,
+    required this.ownerName,
+    required this.ownerPhone,
+    required this.progressPercent,
+    required this.status,
+  });
+
+  GroupDeliverableModel copyWith({
+    int? progressPercent,
+    DeliverableStatus? status,
+  }) {
+    return GroupDeliverableModel(
+      id: id,
+      projectId: projectId,
+      title: title,
+      type: type,
+      priority: priority,
+      ownerName: ownerName,
+      ownerPhone: ownerPhone,
+      progressPercent: progressPercent ?? this.progressPercent,
+      status: status ?? this.status,
+    );
+  }
+}
+
+class GroupActivityModel {
+  final String actorName;
+  final String description;
+  final DateTime createdAt;
+
+  GroupActivityModel({
+    required this.actorName,
+    required this.description,
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
+}

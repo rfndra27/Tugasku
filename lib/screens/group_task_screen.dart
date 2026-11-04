@@ -343,12 +343,119 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                             ),
                           );
                         }),
+                        const SizedBox(height: 12),
+                        _buildDeliverablesSection(project, provider),
                       ],
                     ),
                   ),
                 );
               },
             ),
+    );
+  }
+
+  Widget _buildDeliverablesSection(GroupProjectModel project, TaskProvider provider) {
+    final deliverables = provider.deliverablesFor(project.id);
+    final activities = provider.activityFor(project.id);
+    final progress = deliverables.isEmpty
+        ? 0
+        : (deliverables.map((item) => item.progressPercent).reduce((a, b) => a + b) / deliverables.length).round();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Deliverables Tim', style: TextStyle(fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor)),
+            Text('$progress% selesai', style: const TextStyle(fontWeight: FontWeight.bold, color: AppConstants.primaryColor)),
+          ],
+        ),
+        const SizedBox(height: 6),
+        LinearProgressIndicator(
+          value: progress / 100,
+          minHeight: 8,
+          borderRadius: BorderRadius.circular(8),
+          backgroundColor: AppConstants.elevatedSurfaceColor,
+          color: AppConstants.primaryColor,
+        ),
+        const SizedBox(height: 10),
+        ...deliverables.map((deliverable) {
+          final statusLabel = deliverable.status == DeliverableStatus.completed
+              ? 'Selesai'
+              : deliverable.status == DeliverableStatus.inProgress
+                  ? 'Berjalan'
+                  : 'Menunggu';
+          return Card(
+            margin: const EdgeInsets.only(bottom: 6),
+            color: AppConstants.inputColor,
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          deliverable.title,
+                          style: const TextStyle(fontWeight: FontWeight.w700, color: AppConstants.textPrimaryColor),
+                        ),
+                      ),
+                      Text(statusLabel, style: const TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Slider(
+                          value: deliverable.progressPercent.toDouble(),
+                          min: 0,
+                          max: 100,
+                          divisions: 20,
+                          label: '${deliverable.progressPercent}%',
+                          onChanged: (value) {
+                            final percent = value.round();
+                            provider.updateDeliverable(
+                              deliverable.copyWith(
+                                progressPercent: percent,
+                                status: percent == 100
+                                    ? DeliverableStatus.completed
+                                    : percent == 0
+                                        ? DeliverableStatus.pending
+                                        : DeliverableStatus.inProgress,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      Text('${deliverable.progressPercent}%'),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text('${deliverable.type} • Prioritas ${deliverable.priority}', style: const TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor)),
+                      const Spacer(),
+                      Text(deliverable.ownerName, style: const TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+        if (activities.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          const Text('Riwayat Aktivitas', style: TextStyle(fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor)),
+          const SizedBox(height: 4),
+          ...activities.take(3).map((activity) => ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.history_rounded, size: 18, color: AppConstants.primaryColor),
+                title: Text('${activity.actorName} ${activity.description}', style: const TextStyle(fontSize: 12, color: AppConstants.textSecondaryColor)),
+              )),
+        ],
+      ],
     );
   }
 }

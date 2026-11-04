@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import '../core/constants.dart';
 import '../providers/task_provider.dart';
@@ -23,6 +24,38 @@ class _ElearningSyncDialogState extends State<ElearningSyncDialog> {
   void dispose() {
     _urlController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleFileImport() async {
+    try {
+      final provider = context.read<TaskProvider>();
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['ics'],
+        withData: true,
+      );
+      if (result == null) return;
+      final file = result.files.single;
+      final bytes = file.bytes;
+      if (bytes == null) throw Exception('File .ics tidak dapat dibaca.');
+      setState(() {
+        _isLoading = true;
+        _statusMessage = null;
+      });
+      await provider.importIcalContent(String.fromCharCodes(bytes), platform: _selectedPlatform);
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _isSuccess = true;
+        _statusMessage = 'File ${file.name} berhasil diimpor ke daftar tugas.';
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _isSuccess = false;
+        _statusMessage = e.toString().replaceAll('Exception: ', '');
+      });
+    }
   }
 
   Future<void> _handleSync() async {
@@ -108,6 +141,15 @@ class _ElearningSyncDialogState extends State<ElearningSyncDialog> {
               ),
             ),
             const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _isLoading ? null : _handleFileImport,
+                icon: const Icon(Icons.upload_file_rounded),
+                label: const Text('Pilih file .ics dari perangkat'),
+              ),
+            ),
+            const SizedBox(height: 12),
 
             // Tip on how to find iCal link
             Container(
@@ -135,7 +177,7 @@ class _ElearningSyncDialogState extends State<ElearningSyncDialog> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: _isSuccess ? const Color(0xFF1B2E24) : const Color(0xFF2E191B),
+                  color: _isSuccess ? const Color(0xFF123022) : const Color(0xFF35191D),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: _isSuccess ? AppConstants.successColor.withValues(alpha: 0.5) : AppConstants.errorColor.withValues(alpha: 0.5),

@@ -14,6 +14,7 @@ class StreakCounterWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final streak = profile?.currentStreak ?? 0;
     final isStreakActive = streak > 0;
+    final theme = Theme.of(context);
 
     return InkWell(
       borderRadius: BorderRadius.circular(20),
@@ -21,7 +22,9 @@ class StreakCounterWidget extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: isStreakActive ? const Color(0xFF382E1E) : AppConstants.cardColor,
+          color: isStreakActive
+              ? (theme.brightness == Brightness.dark ? const Color(0xFF382E1E) : const Color(0xFFFFF4D6))
+              : theme.cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isStreakActive ? AppConstants.warningColor : AppConstants.borderSubtleColor,
@@ -41,7 +44,7 @@ class StreakCounterWidget extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: isStreakActive ? AppConstants.warningColor : AppConstants.textSecondaryColor,
+                color: isStreakActive ? AppConstants.warningColor : theme.colorScheme.onSurface.withValues(alpha: 0.65),
               ),
             ),
           ],
@@ -58,15 +61,15 @@ class StreakCounterWidget extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppConstants.cardColor,
+        backgroundColor: Theme.of(ctx).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: const BorderSide(color: AppConstants.borderSubtleColor),
         ),
         title: Row(
-          children: const [
-            Text('🔥 ', style: TextStyle(fontSize: 24)),
-            Text('Streak Produktif', style: TextStyle(fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor)),
+          children: [
+            const Text('🔥 ', style: TextStyle(fontSize: 24)),
+            Text('Streak Produktif', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(ctx).colorScheme.onSurface)),
           ],
         ),
         content: Column(
@@ -75,7 +78,7 @@ class StreakCounterWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF382E1E),
+                color: Theme.of(ctx).brightness == Brightness.dark ? const Color(0xFF382E1E) : const Color(0xFFFFF4D6),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppConstants.warningColor.withValues(alpha: 0.5)),
               ),
@@ -90,10 +93,10 @@ class StreakCounterWidget extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     'Selesaikan minimal 1 tugas setiap hari untuk menjaga api streak kamu tetap menyala!',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12, color: Color(0xFFFFD56B)),
+                    style: TextStyle(fontSize: 12, color: Theme.of(ctx).brightness == Brightness.dark ? const Color(0xFFFFD56B) : const Color(0xFF8A5A00)),
                   ),
                 ],
               ),
@@ -102,10 +105,10 @@ class StreakCounterWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Rekor Streak Terbaik:', style: TextStyle(color: AppConstants.textSecondaryColor)),
+                Text('Rekor Streak Terbaik:', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65))),
                 Text(
                   '$bestStreak Hari',
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(ctx).colorScheme.onSurface),
                 ),
               ],
             ),
@@ -113,10 +116,10 @@ class StreakCounterWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Terakhir Menyelesaikan:', style: TextStyle(color: AppConstants.textSecondaryColor)),
+                Text('Terakhir Menyelesaikan:', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65))),
                 Text(
                   lastDate,
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(ctx).colorScheme.onSurface),
                 ),
               ],
             ),
