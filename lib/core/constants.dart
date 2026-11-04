@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 class AppConstants {
   static const String appName = 'TugasKu';
   static const String appTagline = 'Asisten Deadline Mahasiswa';
-  // Set to false when the app is ready to use live Firebase data.
-  static const bool useDemoData = true;
+  // Set to true only for the local demo dataset.
+  static const bool useDemoData = false;
 
   // AI Configuration
   static const String defaultGeminiApiKey = String.fromEnvironment(
