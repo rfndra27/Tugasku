@@ -105,6 +105,7 @@ class FirebaseService {
   }
 
   Future<void> updateUserProfile(UserProfileModel profile) async {
+    await _auth.currentUser?.updateDisplayName(profile.fullName);
     await _firestore.collection('profiles').doc(profile.id).set(profile.toJson(), SetOptions(merge: true));
   }
 
@@ -563,4 +564,3 @@ class FirebaseService {
     }
   }
 }
-

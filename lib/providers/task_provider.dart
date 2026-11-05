@@ -55,6 +55,26 @@ class TaskProvider with ChangeNotifier {
   // Getters
   String? get userId => _userId;
   UserProfileModel? get profile => _profile;
+
+  Future<void> updateProfile({
+    required String fullName,
+    required String university,
+  }) async {
+    if (_userId == null || _profile == null) {
+      throw Exception('Profil pengguna belum siap.');
+    }
+
+    final updatedProfile = _profile!.copyWith(
+      fullName: fullName,
+      university: university,
+    );
+    if (AppConstants.useDemoData) {
+      _profile = updatedProfile;
+      notifyListeners();
+      return;
+    }
+    await _firebaseService.updateUserProfile(updatedProfile);
+  }
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isOverloaded => _isOverloaded;

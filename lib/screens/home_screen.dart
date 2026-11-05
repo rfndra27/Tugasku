@@ -15,6 +15,7 @@ import 'premium_screen.dart';
 import 'smart_task_input_dialog.dart';
 import 'smart_timeline_screen.dart';
 import 'task_detail_screen.dart';
+import 'edit_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final FirebaseService firebaseService;
@@ -167,6 +168,23 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: CircleAvatar(
+              radius: 15,
+              backgroundColor: Colors.white.withValues(alpha: 0.22),
+              child: Text(
+                (profile?.fullName.isNotEmpty == true ? profile!.fullName[0] : 'U').toUpperCase(),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+            tooltip: 'Edit profil',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+              );
+            },
+          ),
           Tooltip(
             message: widget.isDarkMode ? 'Aktifkan light mode' : 'Aktifkan dark mode',
             child: TextButton.icon(
