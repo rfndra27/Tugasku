@@ -9,6 +9,9 @@ import 'package:tugasku/services/firebase_service.dart';
 class MockTestFirebaseService extends FirebaseService {
   bool didAttemptLogin = false;
   bool didAttemptRegister = false;
+  bool didAttemptGoogleSignIn = false;
+  bool didAttemptFacebookSignIn = false;
+  bool didAttemptPasswordReset = false;
 
   @override
   Stream<User?> get authStateChanges => Stream<User?>.value(null);
@@ -25,9 +28,27 @@ class MockTestFirebaseService extends FirebaseService {
     required String password,
     required String fullName,
     required String university,
+    String nim = '',
   }) async {
     didAttemptRegister = true;
     throw Exception('Pendaftaran gagal.');
+  }
+
+  @override
+  Future<UserCredential> signInWithGoogle() async {
+    didAttemptGoogleSignIn = true;
+    throw Exception('Google login gagal.');
+  }
+
+  @override
+  Future<UserCredential> signInWithFacebook() async {
+    didAttemptFacebookSignIn = true;
+    throw Exception('Facebook login gagal.');
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    didAttemptPasswordReset = true;
   }
 }
 
@@ -46,46 +67,82 @@ void main() {
       );
     }
 
-    testWidgets('Renders Login tab by default with email and password fields', (tester) async {
+    testWidgets('Renders Dark Header, Login tab by default, stacked inputs, remember me, and social login', (tester) async {
       await tester.pumpWidget(createAuthScreen());
       await tester.pumpAndSettle();
 
-      expect(find.text('TugasKu'), findsOneWidget);
-      expect(find.text('Asisten Deadline Mahasiswa'), findsOneWidget);
-      expect(find.text('Masuk'), findsOneWidget);
-      expect(find.text('Daftar Akun'), findsOneWidget);
-      expect(find.text('Email Mahasiswa'), findsOneWidget);
-      expect(find.text('Kata Sandi'), findsOneWidget);
-      expect(find.text('Masuk ke TugasKu'), findsOneWidget);
+      // Header Elements
+      expect(find.text('Go ahead and set up\nyour account'), findsOneWidget);
+      expect(find.text('Sign in-up to enjoy the best managing experience'), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_back_rounded), findsOneWidget);
+
+      // Pill Switcher Tabs
+      expect(find.widgetWithText(Tab, 'Login'), findsOneWidget);
+      expect(find.widgetWithText(Tab, 'Register'), findsOneWidget);
+
+      // Stacked Input Fields on Login
+      expect(find.text('Email Address'), findsOneWidget);
+      expect(find.text('Password'), findsOneWidget);
+
+      // Options Row
+      expect(find.text('Remember me'), findsOneWidget);
+      expect(find.text('Forgot Password?'), findsOneWidget);
+
+      // Primary Button & Social Login
+      expect(find.widgetWithText(ElevatedButton, 'Login'), findsOneWidget);
+      expect(find.text('Or login with'), findsOneWidget);
+      expect(find.text('Google'), findsOneWidget);
+      expect(find.text('Facebook'), findsOneWidget);
     });
 
     testWidgets('Shows error when clicking login with empty inputs', (tester) async {
       await tester.pumpWidget(createAuthScreen());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Masuk ke TugasKu'));
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
       await tester.pumpAndSettle();
 
       expect(find.text('Email dan kata sandi wajib diisi.'), findsOneWidget);
     });
 
-    testWidgets('Can switch to Daftar Akun tab and display registration inputs', (tester) async {
+    testWidgets('Can switch to Register tab and display registration inputs', (tester) async {
       await tester.pumpWidget(createAuthScreen());
       await tester.pumpAndSettle();
 
-      // Tap on 'Daftar Akun' tab
-      await tester.tap(find.text('Daftar Akun'));
+      // Tap on 'Register' tab
+      await tester.tap(find.widgetWithText(Tab, 'Register'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Nama Lengkap'), findsOneWidget);
-      expect(find.text('Nama Kampus / Universitas'), findsOneWidget);
-      expect(find.text('Buat Akun Mahasiswa'), findsOneWidget);
+      expect(find.text('Full Name'), findsOneWidget);
+      expect(find.text('NIM / NPM'), findsOneWidget);
+      expect(find.text('University / Campus'), findsOneWidget);
+      expect(find.text('Email Address'), findsOneWidget);
+      expect(find.text('Password'), findsOneWidget);
+      expect(find.widgetWithText(ElevatedButton, 'Register'), findsOneWidget);
 
-      // Tap submit with empty fields
-      await tester.tap(find.text('Buat Akun Mahasiswa'));
+      // Tap submit with empty required fields
+      await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'Register'));
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Register'));
       await tester.pumpAndSettle();
 
       expect(find.text('Mohon lengkapi seluruh field yang wajib diisi.'), findsOneWidget);
+    });
+
+    testWidgets('Opens Forgot Password dialog and allows dismissing it', (tester) async {
+      await tester.pumpWidget(createAuthScreen());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Forgot Password?'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reset Kata Sandi'), findsOneWidget);
+      expect(find.text('Kirim'), findsOneWidget);
+      expect(find.text('Batal'), findsOneWidget);
+
+      await tester.tap(find.text('Batal'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reset Kata Sandi'), findsNothing);
     });
   });
 }

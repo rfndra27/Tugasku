@@ -59,21 +59,48 @@ class TaskProvider with ChangeNotifier {
   Future<void> updateProfile({
     required String fullName,
     required String university,
+    String? nim,
+    String? major,
+    String? semester,
+    String? phone,
+    String? bio,
+    int? avatarColor,
   }) async {
-    if (_userId == null || _profile == null) {
-      throw Exception('Profil pengguna belum siap.');
-    }
+    final user = _firebaseService.currentUser;
+    final fallbackId = _userId ?? user?.uid ?? 'user-default';
+    final fallbackEmail = (_profile?.email.isNotEmpty == true) ? _profile!.email : (user?.email ?? '');
 
-    final updatedProfile = _profile!.copyWith(
+    final current = _profile ??
+        UserProfileModel(
+          id: fallbackId,
+          email: fallbackEmail,
+          fullName: fullName,
+          university: university,
+          nim: nim ?? '',
+          major: major ?? '',
+          semester: semester ?? '',
+          phone: phone ?? '',
+          bio: bio ?? '',
+          avatarColor: avatarColor ?? 0xFF6B8E78,
+        );
+
+    final updatedProfile = current.copyWith(
       fullName: fullName,
       university: university,
+      nim: nim ?? current.nim,
+      major: major ?? current.major,
+      semester: semester ?? current.semester,
+      phone: phone ?? current.phone,
+      bio: bio ?? current.bio,
+      avatarColor: avatarColor ?? current.avatarColor,
     );
-    if (AppConstants.useDemoData) {
-      _profile = updatedProfile;
-      notifyListeners();
-      return;
+
+    _profile = updatedProfile;
+    notifyListeners();
+
+    if (!AppConstants.useDemoData) {
+      await _firebaseService.updateUserProfile(updatedProfile);
     }
-    await _firebaseService.updateUserProfile(updatedProfile);
   }
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -141,7 +168,19 @@ class TaskProvider with ChangeNotifier {
 
     // 1. Profile Stream
     _profileSub = _firebaseService.streamUserProfile(userId).listen((profile) {
-      _profile = profile;
+      _profile = profile ??
+          UserProfileModel(
+            id: userId,
+            email: _firebaseService.currentUser?.email ?? '',
+            fullName: _firebaseService.currentUser?.displayName ?? 'Mahasiswa',
+            university: 'Politeknik Negeri Jakarta',
+            nim: '',
+            major: '',
+            semester: '',
+            phone: '',
+            bio: '',
+            avatarColor: 0xFF6B8E78,
+          );
       notifyListeners();
     });
 
@@ -177,6 +216,12 @@ class TaskProvider with ChangeNotifier {
       email: 'mahasiswa@tugasku.app',
       fullName: 'Muhammad Aurakha',
       university: 'Politeknik Negeri Jakarta',
+      nim: '2107411001',
+      major: 'Broadband Multimedia (BM - 5A)',
+      semester: 'Semester 5',
+      phone: '628123456789',
+      bio: 'Target IPK 3.8 & lulus tepat waktu!',
+      avatarColor: 0xFF6B8E78,
       currentStreak: 4,
       bestStreak: 12,
       aiUsageCount: 1,

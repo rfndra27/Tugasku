@@ -63,6 +63,7 @@ class FirebaseService {
     required String password,
     required String fullName,
     required String university,
+    String nim = '',
   }) async {
     final cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
     final user = cred.user;
@@ -74,6 +75,12 @@ class FirebaseService {
         'email': email,
         'full_name': fullName,
         'university': university,
+        'nim': nim,
+        'major': '',
+        'semester': '',
+        'phone': '',
+        'bio': '',
+        'avatar_color': 0xFF6B8E78,
         'is_premium': false,
         'premium_expiry': null,
         'current_streak': 0,
@@ -85,6 +92,52 @@ class FirebaseService {
       });
     }
     return cred;
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
+
+  Future<UserCredential> signInWithGoogle() async {
+    final provider = GoogleAuthProvider();
+    final cred = await _auth.signInWithProvider(provider);
+    await _ensureProfileExists(cred.user);
+    return cred;
+  }
+
+  Future<UserCredential> signInWithFacebook() async {
+    final provider = FacebookAuthProvider();
+    final cred = await _auth.signInWithProvider(provider);
+    await _ensureProfileExists(cred.user);
+    return cred;
+  }
+
+  Future<void> _ensureProfileExists(User? user) async {
+    if (user == null) return;
+    final docRef = _firestore.collection('profiles').doc(user.uid);
+    final docSnap = await docRef.get();
+    if (!docSnap.exists) {
+      await docRef.set({
+        'id': user.uid,
+        'email': user.email ?? '',
+        'full_name': (user.displayName != null && user.displayName!.isNotEmpty) ? user.displayName! : 'Mahasiswa',
+        'university': 'Politeknik Negeri Jakarta',
+        'nim': '',
+        'major': '',
+        'semester': '',
+        'phone': user.phoneNumber ?? '',
+        'bio': '',
+        'avatar_color': 0xFF6B8E78,
+        'is_premium': false,
+        'premium_expiry': null,
+        'current_streak': 0,
+        'best_streak': 0,
+        'last_completed_date': null,
+        'ai_usage_count': 0,
+        'ai_usage_reset_date': FieldValue.serverTimestamp(),
+        'created_at': FieldValue.serverTimestamp(),
+      });
+    }
   }
 
   Future<void> signOut() async {
@@ -106,7 +159,36 @@ class FirebaseService {
 
   Future<void> updateUserProfile(UserProfileModel profile) async {
     await _auth.currentUser?.updateDisplayName(profile.fullName);
-    await _firestore.collection('profiles').doc(profile.id).set(profile.toJson(), SetOptions(merge: true));
+    final docRef = _firestore.collection('profiles').doc(profile.id);
+    final docSnap = await docRef.get();
+    final editableData = {
+      'id': profile.id,
+      'email': profile.email,
+      'full_name': profile.fullName,
+      'university': profile.university,
+      'nim': profile.nim,
+      'major': profile.major,
+      'semester': profile.semester,
+      'phone': profile.phone,
+      'bio': profile.bio,
+      'avatar_color': profile.avatarColor,
+    };
+
+    if (docSnap.exists) {
+      await docRef.update(editableData);
+    } else {
+      await docRef.set({
+        ...editableData,
+        'is_premium': false,
+        'premium_expiry': null,
+        'current_streak': 0,
+        'best_streak': 0,
+        'last_completed_date': null,
+        'ai_usage_count': 0,
+        'ai_usage_reset_date': FieldValue.serverTimestamp(),
+        'created_at': FieldValue.serverTimestamp(),
+      });
+    }
   }
 
   // ----------------------------------------------------

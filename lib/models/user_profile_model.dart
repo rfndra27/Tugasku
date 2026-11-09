@@ -6,6 +6,12 @@ class UserProfileModel {
   final String email;
   final String fullName;
   final String university;
+  final String nim;
+  final String major;
+  final String semester;
+  final String phone;
+  final String bio;
+  final int avatarColor;
   final bool isPremium;
   final DateTime? premiumExpiry;
   final int currentStreak;
@@ -19,6 +25,12 @@ class UserProfileModel {
     required this.email,
     required this.fullName,
     this.university = '',
+    this.nim = '',
+    this.major = '',
+    this.semester = '',
+    this.phone = '',
+    this.bio = '',
+    this.avatarColor = 0xFF6B8E78,
     this.isPremium = false,
     this.premiumExpiry,
     this.currentStreak = 0,
@@ -39,6 +51,12 @@ class UserProfileModel {
     String? email,
     String? fullName,
     String? university,
+    String? nim,
+    String? major,
+    String? semester,
+    String? phone,
+    String? bio,
+    int? avatarColor,
     bool? isPremium,
     DateTime? premiumExpiry,
     int? currentStreak,
@@ -52,6 +70,12 @@ class UserProfileModel {
       email: email ?? this.email,
       fullName: fullName ?? this.fullName,
       university: university ?? this.university,
+      nim: nim ?? this.nim,
+      major: major ?? this.major,
+      semester: semester ?? this.semester,
+      phone: phone ?? this.phone,
+      bio: bio ?? this.bio,
+      avatarColor: avatarColor ?? this.avatarColor,
       isPremium: isPremium ?? this.isPremium,
       premiumExpiry: premiumExpiry ?? this.premiumExpiry,
       currentStreak: currentStreak ?? this.currentStreak,
@@ -68,6 +92,12 @@ class UserProfileModel {
       'email': email,
       'full_name': fullName,
       'university': university,
+      'nim': nim,
+      'major': major,
+      'semester': semester,
+      'phone': phone,
+      'bio': bio,
+      'avatar_color': avatarColor,
       'is_premium': isPremium,
       'premium_expiry': premiumExpiry != null ? Timestamp.fromDate(premiumExpiry!) : null,
       'current_streak': currentStreak,
@@ -92,6 +122,12 @@ class UserProfileModel {
       email: json['email']?.toString() ?? '',
       fullName: json['full_name']?.toString() ?? 'Mahasiswa',
       university: json['university']?.toString() ?? '',
+      nim: json['nim']?.toString() ?? '',
+      major: json['major']?.toString() ?? '',
+      semester: json['semester']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? '',
+      bio: json['bio']?.toString() ?? '',
+      avatarColor: (json['avatar_color'] is num) ? (json['avatar_color'] as num).toInt() : 0xFF6B8E78,
       isPremium: json['is_premium'] == true,
       premiumExpiry: parseDate(json['premium_expiry']),
       currentStreak: (json['current_streak'] is num) ? (json['current_streak'] as num).toInt() : 0,

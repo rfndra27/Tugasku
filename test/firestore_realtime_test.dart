@@ -78,6 +78,41 @@ void main() {
       expect(premiumUser.remainingAiQuota, equals(-1)); // -1 means Unlimited
     });
 
+    test('UserProfileModel correctly serializes and deserializes academic & personal fields', () {
+      final profile = UserProfileModel(
+        id: 'u-academic',
+        email: 'academic@pnj.ac.id',
+        fullName: 'Muhammad Aurakha',
+        university: 'Politeknik Negeri Jakarta',
+        nim: '2107411001',
+        major: 'Broadband Multimedia (BM - 5A)',
+        semester: 'Semester 5',
+        phone: '628123456789',
+        bio: 'Target IPK 3.8 & lulus tepat waktu!',
+        avatarColor: 0xFF8B5CF6,
+        isPremium: true,
+        currentStreak: 5,
+        bestStreak: 14,
+      );
+
+      final json = profile.toJson();
+      expect(json['nim'], equals('2107411001'));
+      expect(json['major'], equals('Broadband Multimedia (BM - 5A)'));
+      expect(json['semester'], equals('Semester 5'));
+      expect(json['phone'], equals('628123456789'));
+      expect(json['bio'], equals('Target IPK 3.8 & lulus tepat waktu!'));
+      expect(json['avatar_color'], equals(0xFF8B5CF6));
+
+      final deserialized = UserProfileModel.fromJson(json, docId: 'u-academic');
+      expect(deserialized.id, equals('u-academic'));
+      expect(deserialized.nim, equals('2107411001'));
+      expect(deserialized.major, equals('Broadband Multimedia (BM - 5A)'));
+      expect(deserialized.semester, equals('Semester 5'));
+      expect(deserialized.phone, equals('628123456789'));
+      expect(deserialized.bio, equals('Target IPK 3.8 & lulus tepat waktu!'));
+      expect(deserialized.avatarColor, equals(0xFF8B5CF6));
+    });
+
     test('ClassScheduleModel computes start and end total minutes accurately', () {
       final schedule = ClassScheduleModel(
         id: 'sch-1',

@@ -89,6 +89,11 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedIcon: Icon(Icons.groups_rounded),
         label: 'Kelompok',
       ),
+      const NavigationDestination(
+        icon: Icon(Icons.person_outline_rounded),
+        selectedIcon: Icon(Icons.person_rounded),
+        label: 'Profil',
+      ),
     ];
     final content = IndexedStack(
       index: _currentTabIndex,
@@ -97,6 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const SmartTimelineScreen(),
         const AiChatScreen(),
         const GroupTaskScreen(),
+        const EditProfileScreen(isEmbedded: true),
       ],
     );
 
@@ -154,24 +160,38 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              profile?.fullName.isNotEmpty == true ? 'Halo, ${profile!.fullName.split(" ").first} 👋' : 'TugasKu',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+        title: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+            );
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  profile?.fullName.isNotEmpty == true ? 'Halo, ${profile!.fullName.split(" ").first} 👋' : 'TugasKu',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                Text(
+                  profile?.major.isNotEmpty == true
+                      ? '${profile!.major} • ${profile.university.isNotEmpty ? profile.university : "PNJ"}'
+                      : (profile?.university.isNotEmpty == true ? profile!.university : AppConstants.appTagline),
+                  style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.78)),
+                ),
+              ],
             ),
-            Text(
-              profile?.university.isNotEmpty == true ? profile!.university : AppConstants.appTagline,
-              style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.78)),
-            ),
-          ],
+          ),
         ),
         actions: [
           IconButton(
             icon: CircleAvatar(
               radius: 15,
-              backgroundColor: Colors.white.withValues(alpha: 0.22),
+              backgroundColor: Color(profile?.avatarColor ?? 0xFF6B8E78),
               child: Text(
                 (profile?.fullName.isNotEmpty == true ? profile!.fullName[0] : 'U').toUpperCase(),
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -298,6 +318,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: _openElearningSyncDialog,
                     icon: Icon(Icons.sync_rounded, size: 16, color: Theme.of(context).colorScheme.onSurface),
                     label: Text('Sinkron E-Learning (.ics)', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface)),
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Theme.of(context).cardColor,
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      side: const BorderSide(color: AppConstants.borderSubtleColor),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                      );
+                    },
+                    icon: const Icon(Icons.edit_note_rounded, size: 18, color: Color(0xFF6B8E78)),
+                    label: Text('Edit Profil', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface)),
                     style: OutlinedButton.styleFrom(
                       backgroundColor: Theme.of(context).cardColor,
                       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),

@@ -33,7 +33,11 @@ class ICalEvent {
 }
 
 class ICalService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore? _customFirestore;
+
+  ICalService({FirebaseFirestore? firestore}) : _customFirestore = firestore;
+
+  FirebaseFirestore get _firestore => _customFirestore ?? FirebaseFirestore.instance;
 
   Future<ICalSyncResult> syncIcalContent({
     required String userId,
