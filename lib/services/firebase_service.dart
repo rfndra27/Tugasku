@@ -645,4 +645,399 @@ class FirebaseService {
       return true;
     }
   }
+
+  // ----------------------------------------------------
+  // AUTH HELPERS: PHONE NORMALIZATION, IDENTIFIER LOGIN, OTP
+  // ----------------------------------------------------
+  static String normalizePhone(String rawPhone) {
+    String value = rawPhone.trim().replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    if (value.startsWith('+')) value = value.substring(1);
+    if (value.startsWith('0')) {
+      value = '62${value.substring(1)}';
+    } else if (value.startsWith('8')) {
+      value = '62$value';
+    } else if (value.startsWith('62')) {
+      // keep as is
+    } else {
+      value = '62$value';
+    }
+    return '+$value';
+  }
+
+  Future<UserCredential> signInWithIdentifierPassword(String identifier, String password) async {
+    if (identifier.contains('@')) {
+      return await _auth.signInWithEmailAndPassword(email: identifier, password: password);
+    }
+
+    final normalized = normalizePhone(identifier);
+    final lookupDoc = await _firestore.collection('phone_lookup').doc(normalized).get();
+    String? resolvedEmail;
+    if (lookupDoc.exists) {
+      resolvedEmail = lookupDoc.data()?['email']?.toString();
+    } else {
+      final profileSnap = await _firestore
+          .collection('profiles')
+          .where('phone', isEqualTo: normalized)
+          .limit(1)
+          .get();
+      if (profileSnap.docs.isNotEmpty) {
+        resolvedEmail = profileSnap.docs.first.data()['email']?.toString();
+      }
+    }
+
+    if (resolvedEmail == null || resolvedEmail.isEmpty) {
+      throw FirebaseAuthException(
+        message: 'Nomor telepon belum terdaftar atau belum dihubungkan ke akun.',
+        code: 'phone-not-found',
+      );
+    }
+
+    return await _auth.signInWithEmailAndPassword(email: resolvedEmail, password: password);
+  }
+
+  Future<ConfirmationResult> sendPhoneOtpWeb(String phoneNumber) async {
+    final normalized = normalizePhone(phoneNumber);
+    return await _auth.signInWithPhoneNumber(normalized);
+  }
+
+  Future<void> verifyPhoneOtpMobile({
+    required String phoneNumber,
+    required void Function(String verificationId, int? resendToken) onCodeSent,
+    required void Function(String errorMessage) onError,
+    required void Function(UserCredential credential) onAutoVerified,
+  }) async {
+    final normalized = normalizePhone(phoneNumber);
+    await _auth.verifyPhoneNumber(
+      phoneNumber: normalized,
+      verificationCompleted: (credential) async {
+        if (mounted) {
+          onAutoVerified(credential);
+        }
+      },
+      verificationFailed: (e) {
+        onError(e.message ?? 'Verifikasi nomor telepon gagal.');
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        onCodeSent(verificationId, resendToken);
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {},
+    );
+  }
+
+  Future<UserCredential> confirmPhoneOtp({
+    required String verificationId,
+    required String smsCode,
+  }) async {
+    final credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: smsCode,
+    );
+    final userCredential = await _auth.signInWithCredential(credential);
+    final user = userCredential.user;
+    if (user != null) {
+      await _ensureProfileExists(user);
+      await seedInitialCharterDataIfEmpty(user.uid);
+    }
+    return userCredential;
+  }
+
+  // ----------------------------------------------------
+  // PHONE LOOKUP
+  // ----------------------------------------------------
+  Future<void> upsertPhoneLookup({
+    required String phone,
+    required String email,
+    required String uid,
+  }) async {
+    final normalized = normalizePhone(phone);
+    if (normalized.isEmpty) return;
+    await _firestore.collection('phone_lookup').doc(normalized).set({
+      'uid': uid,
+      'email': email,
+      'phone': normalized,
+      'updated_at': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  // ----------------------------------------------------
+  // PERSONAL AGENDA
+  // ----------------------------------------------------
+  Stream<List<PersonalAgendaModel>> streamPersonalAgendas(String userId) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('personal_agendas')
+        .snapshots()
+        .map((snapshot) {
+      final list = snapshot.docs.map((doc) => PersonalAgendaModel.fromFirestore(doc)).toList();
+      list.sort((a, b) {
+        final dateComp = a.date.compareTo(b.date);
+        if (dateComp != 0) return dateComp;
+        return a.startTotalMinutes.compareTo(b.startTotalMinutes);
+      });
+      return list;
+    });
+  }
+
+  Future<void> addPersonalAgenda(String userId, PersonalAgendaModel agenda) async {
+    final docRef = _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('personal_agendas')
+        .doc(agenda.id.isNotEmpty ? agenda.id : null);
+    await docRef.set(agenda.copyWith(id: docRef.id, userId: userId).toJson());
+  }
+
+  Future<void> deletePersonalAgenda(String userId, String agendaId) async {
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('personal_agendas')
+        .doc(agendaId)
+        .delete();
+  }
+
+  // ----------------------------------------------------
+  // GROUP DELIVERABLES & ACTIVITY LOGS
+  // ----------------------------------------------------
+  Future<void> addGroupDeliverable(String userId, GroupDeliverableModel deliverable) async {
+    final docRef = _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('group_projects')
+        .doc(deliverable.projectId)
+        .collection('deliverables')
+        .doc(deliverable.id.isNotEmpty ? deliverable.id : null);
+
+    await docRef.set(deliverable.copyWith(id: docRef.id).toJson());
+  }
+
+  Future<void> updateGroupDeliverable(
+    String userId,
+    GroupDeliverableModel deliverable, {
+    required String actorName,
+  }) async {
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('group_projects')
+        .doc(deliverable.projectId)
+        .collection('deliverables')
+        .doc(deliverable.id)
+        .update(deliverable.copyWith(id: deliverable.id).toJson());
+
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('group_projects')
+        .doc(deliverable.projectId)
+        .collection('activity_logs')
+        .add({
+      'actor_name': actorName,
+      'description': 'memperbarui ${deliverable.title} menjadi ${deliverable.progressPercent}%',
+      'created_at': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> deleteGroupDeliverable(String userId, String projectId, String deliverableId) async {
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('group_projects')
+        .doc(projectId)
+        .collection('deliverables')
+        .doc(deliverableId)
+        .delete();
+  }
+
+  // ----------------------------------------------------
+  // AUTO SEEDER DATA KELOMPOK 6
+  // ----------------------------------------------------
+  Future<void> seedInitialCharterDataIfEmpty(String userId) async {
+    final tasksSnap = await _firestore.collection('users').doc(userId).collection('tasks').limit(1).get();
+    final groupsSnap = await _firestore.collection('users').doc(userId).collection('group_projects').limit(1).get();
+    if (tasksSnap.docs.isNotEmpty && groupsSnap.docs.isNotEmpty) {
+      return;
+    }
+
+    final now = DateTime.now();
+    final batch = _firestore.batch();
+
+    // Tasks
+    final taskDocs = <Map<String, dynamic>>[
+      {
+        'user_id': userId,
+        'course_name': 'Kewirausahaan',
+        'title': 'Finalisasi Project Charter Kelompok 6',
+        'description': 'Siapkan bab 1-3 Project Charter untuk presentasi.',
+        'deadline': Timestamp.fromDate(now.add(const Duration(days: 1, hours: 8))),
+        'weight_percentage': 25,
+        'priority_score': 850.0,
+        'is_completed': false,
+        'completed_at': null,
+        'source': 'manual',
+        'external_uid': null,
+        'is_group_task': true,
+      },
+      {
+        'user_id': userId,
+        'course_name': 'Pemrograman Web',
+        'title': 'Dashboard Monitoring TugasKu',
+        'description': 'Selesaikan halaman monitoring deadline dan prioritas.',
+        'deadline': Timestamp.fromDate(now.add(const Duration(days: 3))),
+        'weight_percentage': 20,
+        'priority_score': 620.0,
+        'is_completed': false,
+        'completed_at': null,
+        'source': 'manual',
+        'external_uid': null,
+        'is_group_task': false,
+      },
+      {
+        'user_id': userId,
+        'course_name': 'Basis Data',
+        'title': 'Import Data E-Learning ke Firestore',
+        'description': 'Skrip sinkronisasi ICS dan penyusunan struktur koleksi.',
+        'deadline': Timestamp.fromDate(now.add(const Duration(days: 5))),
+        'weight_percentage': 15,
+        'priority_score': 420.0,
+        'is_completed': false,
+        'completed_at': null,
+        'source': 'elearning_ical',
+        'external_uid': 'seed-ical-${now.millisecondsSinceEpoch}',
+        'is_group_task': false,
+      },
+    ];
+
+    for (final data in taskDocs) {
+      final ref = _firestore.collection('users').doc(userId).collection('tasks').doc();
+      batch.set(ref, data);
+    }
+
+    // Schedules BM-5A
+    final scheduleDocs = <Map<String, dynamic>>[
+      {
+        'user_id': userId,
+        'course_name': 'Kewirausahaan',
+        'day_of_week': 5,
+        'start_time': '13:00',
+        'end_time': '14:40',
+        'room': 'Ruang A-105',
+      },
+      {
+        'user_id': userId,
+        'course_name': 'Pemrograman Web',
+        'day_of_week': 1,
+        'start_time': '08:00',
+        'end_time': '09:40',
+        'room': 'Lab Komputer 302',
+      },
+      {
+        'user_id': userId,
+        'course_name': 'Basis Data',
+        'day_of_week': 4,
+        'start_time': '10:00',
+        'end_time': '11:40',
+        'room': 'Ruang D-204',
+      },
+    ];
+
+    for (final data in scheduleDocs) {
+      final ref = _firestore.collection('users').doc(userId).collection('class_schedules').doc();
+      batch.set(ref, data);
+    }
+
+    // Personal agenda
+    final agendaRef = _firestore.collection('users').doc(userId).collection('personal_agendas').doc();
+    batch.set(agendaRef, {
+      'user_id': userId,
+      'title': 'Koordinasi Kelompok 6',
+      'date': Timestamp.fromDate(DateTime(now.year, now.month, now.day, 15, 0)),
+      'start_time': '15:00',
+      'end_time': '16:30',
+    });
+
+    // Group project
+    final projectRef = _firestore.collection('users').doc(userId).collection('group_projects').doc();
+    batch.set(projectRef, {
+      'id': projectRef.id,
+      'user_id': userId,
+      'title': 'TugasKu - Project Charter Kelompok 6',
+      'course_name': 'Kewirausahaan (BM - 5A)',
+      'invite_code': 'GRP-${DateTime.now().millisecondsSinceEpoch % 10000}',
+      'created_at': FieldValue.serverTimestamp(),
+    });
+
+    final memberData = [
+      {'name': 'Mochmad Remano Darusatwiko', 'phone': '+628123456789', 'role': 'leader'},
+      {'name': 'Muhammad Novansya', 'phone': '+628123456780', 'role': 'member'},
+      {'name': 'Riviera Rafa Andara', 'phone': '+628123456781', 'role': 'member'},
+    ];
+
+    for (final member in memberData) {
+      final ref = projectRef.collection('members').doc();
+      batch.set(ref, {
+        'id': ref.id,
+        'project_id': projectRef.id,
+        ...member,
+        'joined_at': FieldValue.serverTimestamp(),
+      });
+    }
+
+    // Deliverables
+    final deliverables = [
+      {
+        'title': 'Riset target pasar',
+        'type': 'Planning',
+        'priority': 1,
+        'owner_name': 'Muhammad Novansya',
+        'owner_phone': '+628123456780',
+        'progress_percent': 100,
+        'status': 'completed',
+      },
+      {
+        'title': 'Prototype landing page',
+        'type': 'Development',
+        'priority': 2,
+        'owner_name': 'Riviera Rafa Andara',
+        'owner_phone': '+628123456781',
+        'progress_percent': 80,
+        'status': 'in_progress',
+      },
+      {
+        'title': 'Laporan dan presentasi',
+        'type': 'Report',
+        'priority': 2,
+        'owner_name': 'Mochmad Remano Darusatwiko',
+        'owner_phone': '+628123456789',
+        'progress_percent': 40,
+        'status': 'in_progress',
+      },
+    ];
+
+    for (final data in deliverables) {
+      final ref = projectRef.collection('deliverables').doc();
+      batch.set(ref, {
+        'project_id': projectRef.id,
+        ...data,
+      });
+    }
+
+    // Activity logs
+    final activities = [
+      {'actor_name': 'Muhammad Novansya', 'description': 'menyelesaikan riset target pasar'},
+      {'actor_name': 'Riviera Rafa Andara', 'description': 'memperbarui prototype menjadi 80%'},
+      {'actor_name': 'Mochmad Remano Darusatwiko', 'description': 'membuat draft laporan dan presentasi'},
+    ];
+
+    for (final activity in activities) {
+      final ref = projectRef.collection('activity_logs').doc();
+      batch.set(ref, {
+        ...activity,
+        'created_at': FieldValue.serverTimestamp(),
+      });
+    }
+
+    await batch.commit();
+  }
 }

@@ -11,7 +11,7 @@ class AppConstants {
     'GEMINI_API_KEY',
     defaultValue: '',
   );
-  static const String geminiModel = 'gemini-1.5-flash';
+  static const String geminiModel = 'gemini-2.5-flash';
   static const String geminiEndpoint = 'https://generativelanguage.googleapis.com/v1beta/models';
 
   // Freemium Constraints

@@ -181,31 +181,126 @@ class GroupDeliverableModel {
   });
 
   GroupDeliverableModel copyWith({
+    String? id,
+    String? projectId,
+    String? title,
+    String? type,
+    int? priority,
+    String? ownerName,
+    String? ownerPhone,
     int? progressPercent,
     DeliverableStatus? status,
   }) {
     return GroupDeliverableModel(
-      id: id,
-      projectId: projectId,
-      title: title,
-      type: type,
-      priority: priority,
-      ownerName: ownerName,
-      ownerPhone: ownerPhone,
+      id: id ?? this.id,
+      projectId: projectId ?? this.projectId,
+      title: title ?? this.title,
+      type: type ?? this.type,
+      priority: priority ?? this.priority,
+      ownerName: ownerName ?? this.ownerName,
+      ownerPhone: ownerPhone ?? this.ownerPhone,
       progressPercent: progressPercent ?? this.progressPercent,
       status: status ?? this.status,
+    );
+  }
+
+  static DeliverableStatus statusFromValue(dynamic value) {
+    final raw = value?.toString() ?? '';
+    switch (raw) {
+      case 'completed':
+        return DeliverableStatus.completed;
+      case 'inProgress':
+      case 'in_progress':
+        return DeliverableStatus.inProgress;
+      default:
+        return DeliverableStatus.pending;
+    }
+  }
+
+  static String statusToValue(DeliverableStatus status) {
+    switch (status) {
+      case DeliverableStatus.completed:
+        return 'completed';
+      case DeliverableStatus.inProgress:
+        return 'in_progress';
+      case DeliverableStatus.pending:
+        return 'pending';
+    }
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'project_id': projectId,
+        'title': title,
+        'type': type,
+        'priority': priority,
+        'owner_name': ownerName,
+        'owner_phone': ownerPhone,
+        'progress_percent': progressPercent,
+        'status': statusToValue(status),
+      };
+
+  factory GroupDeliverableModel.fromJson(Map<String, dynamic> json, {String? docId}) {
+    return GroupDeliverableModel(
+      id: docId ?? json['id']?.toString() ?? '',
+      projectId: json['project_id']?.toString() ?? '',
+      title: json['title']?.toString() ?? 'Deliverable',
+      type: json['type']?.toString() ?? 'Planning',
+      priority: json['priority'] is num ? (json['priority'] as num).toInt() : 3,
+      ownerName: json['owner_name']?.toString() ?? '',
+      ownerPhone: json['owner_phone']?.toString() ?? '',
+      progressPercent: json['progress_percent'] is num ? (json['progress_percent'] as num).toInt() : 0,
+      status: statusFromValue(json['status']),
+    );
+  }
+
+  factory GroupDeliverableModel.fromFirestore(DocumentSnapshot doc) {
+    return GroupDeliverableModel.fromJson(
+      (doc.data() as Map<String, dynamic>?) ?? {},
+      docId: doc.id,
     );
   }
 }
 
 class GroupActivityModel {
+  final String id;
   final String actorName;
   final String description;
   final DateTime createdAt;
 
   GroupActivityModel({
+    this.id = '',
     required this.actorName,
     required this.description,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'actor_name': actorName,
+        'description': description,
+        'created_at': Timestamp.fromDate(createdAt),
+      };
+
+  factory GroupActivityModel.fromJson(Map<String, dynamic> json, {String? docId}) {
+    final value = json['created_at'];
+    final createdAt = value is Timestamp
+        ? value.toDate()
+        : value is DateTime
+            ? value
+            : DateTime.tryParse(value?.toString() ?? '') ?? DateTime.now();
+    return GroupActivityModel(
+      id: docId ?? json['id']?.toString() ?? '',
+      actorName: json['actor_name']?.toString() ?? 'Anggota',
+      description: json['description']?.toString() ?? '',
+      createdAt: createdAt,
+    );
+  }
+
+  factory GroupActivityModel.fromFirestore(DocumentSnapshot doc) {
+    return GroupActivityModel.fromJson(
+      (doc.data() as Map<String, dynamic>?) ?? {},
+      docId: doc.id,
+    );
+  }
 }

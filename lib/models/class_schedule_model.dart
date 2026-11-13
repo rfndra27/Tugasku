@@ -110,4 +110,55 @@ class PersonalAgendaModel {
     final minute = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
     return hour * 60 + minute;
   }
+
+  PersonalAgendaModel copyWith({
+    String? id,
+    String? userId,
+    String? title,
+    DateTime? date,
+    String? startTime,
+    String? endTime,
+  }) {
+    return PersonalAgendaModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      title: title ?? this.title,
+      date: date ?? this.date,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_id': userId,
+        'title': title,
+        'date': Timestamp.fromDate(DateTime(date.year, date.month, date.day)),
+        'start_time': startTime,
+        'end_time': endTime,
+      };
+
+  factory PersonalAgendaModel.fromJson(Map<String, dynamic> json, {String? docId}) {
+    final value = json['date'];
+    final parsedDate = value is Timestamp
+        ? value.toDate()
+        : value is DateTime
+            ? value
+            : DateTime.tryParse(value?.toString() ?? '') ?? DateTime.now();
+    return PersonalAgendaModel(
+      id: docId ?? json['id']?.toString() ?? '',
+      userId: json['user_id']?.toString() ?? '',
+      title: json['title']?.toString() ?? 'Agenda Pribadi',
+      date: parsedDate,
+      startTime: json['start_time']?.toString() ?? '08:00',
+      endTime: json['end_time']?.toString() ?? '09:00',
+    );
+  }
+
+  factory PersonalAgendaModel.fromFirestore(DocumentSnapshot doc) {
+    return PersonalAgendaModel.fromJson(
+      (doc.data() as Map<String, dynamic>?) ?? {},
+      docId: doc.id,
+    );
+  }
 }
