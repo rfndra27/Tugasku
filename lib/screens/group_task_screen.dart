@@ -26,9 +26,9 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
         backgroundColor: Theme.of(ctx).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppConstants.borderSubtleColor),
+          side: BorderSide(color: Theme.of(ctx).dividerColor),
         ),
-        title: Text('Buat Proyek Kelompok Baru', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+        title: Text('Buat Proyek Kelompok Baru', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface, fontWeight: FontWeight.bold)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -97,12 +97,12 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
           backgroundColor: Theme.of(ctx).cardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: AppConstants.borderSubtleColor),
+            side: BorderSide(color: Theme.of(ctx).dividerColor),
           ),
-          title: Text('👑 Batas Anggota Gratis', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+          title: Text('👑 Batas Anggota Gratis', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface, fontWeight: FontWeight.bold)),
           content: Text(
             'Akun Gratis maksimal memiliki ${AppConstants.freeMaxGroupMembers} anggota per kelompok. Upgrade ke TugasKu Premium untuk anggota tanpa batas!',
-            style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65)),
+            style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.7)),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Nanti Saja', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65)))),
@@ -128,9 +128,9 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
         backgroundColor: Theme.of(ctx).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppConstants.borderSubtleColor),
+          side: BorderSide(color: Theme.of(ctx).dividerColor),
         ),
-        title: Text('Tambah Anggota Kelompok', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+        title: Text('Tambah Anggota Kelompok', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface, fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -198,9 +198,9 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
           backgroundColor: Theme.of(ctx).cardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: AppConstants.borderSubtleColor),
+            side: BorderSide(color: Theme.of(ctx).dividerColor),
           ),
-          title: Text('Tambah Deliverable / Subtugas', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+          title: Text('Tambah Deliverable / Subtugas', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface, fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -323,10 +323,10 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
     final isPremium = provider.profile?.isPremium ?? false;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final subContainerColor = isDark ? AppConstants.inputColor : const Color(0xFFF1F5F9);
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    final onSurfaceSecondary = onSurface.withValues(alpha: 0.65);
-    final borderColor = Theme.of(context).dividerColor;
+    final subContainerColor = isDark ? AppConstants.inputColor : const Color(0xFFF8FAFC);
+    final onSurface = isDark ? Colors.white : const Color(0xFF0F172A);
+    final onSurfaceSecondary = isDark ? const Color(0xFF9CA3AF) : const Color(0xFF475569);
+    final borderColor = isDark ? AppConstants.borderSubtleColor : const Color(0xFFE2E8F0);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -531,9 +531,10 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
         ? 0
         : (deliverables.map((item) => item.progressPercent).reduce((a, b) => a + b) / deliverables.length).round();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    final onSurfaceSecondary = onSurface.withValues(alpha: 0.65);
-    final itemBg = isDark ? AppConstants.inputColor : const Color(0xFFF1F5F9);
+    final onSurface = isDark ? Colors.white : const Color(0xFF0F172A);
+    final onSurfaceSecondary = isDark ? const Color(0xFF9CA3AF) : const Color(0xFF475569);
+    final itemBg = isDark ? AppConstants.inputColor : const Color(0xFFF8FAFC);
+    final borderColor = isDark ? AppConstants.borderSubtleColor : const Color(0xFFE2E8F0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -552,7 +553,7 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('${deliverables.length} Subtugas', style: TextStyle(fontSize: 12, color: onSurfaceSecondary)),
+            Text('${deliverables.length} Subtugas', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: onSurfaceSecondary)),
             Text('$progress% selesai', style: const TextStyle(fontWeight: FontWeight.bold, color: AppConstants.primaryColor)),
           ],
         ),
@@ -566,20 +567,36 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
         ),
         const SizedBox(height: 10),
         ...deliverables.map((deliverable) {
-          final statusLabel = deliverable.status == DeliverableStatus.completed
-              ? 'Selesai'
-              : deliverable.status == DeliverableStatus.inProgress
-                  ? 'Berjalan'
-                  : 'Menunggu';
+          Color statusBg;
+          Color statusTextColor;
+          String statusLabel;
+          switch (deliverable.status) {
+            case DeliverableStatus.completed:
+              statusLabel = 'Selesai';
+              statusBg = isDark ? const Color(0xFF1B2E24) : const Color(0xFFDCFCE7);
+              statusTextColor = isDark ? const Color(0xFF8CF4AF) : const Color(0xFF166534);
+              break;
+            case DeliverableStatus.inProgress:
+              statusLabel = 'Berjalan';
+              statusBg = isDark ? const Color(0xFF1E2640) : const Color(0xFFDBEAFE);
+              statusTextColor = isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF);
+              break;
+            case DeliverableStatus.pending:
+              statusLabel = 'Menunggu';
+              statusBg = isDark ? const Color(0xFF332515) : const Color(0xFFFEF3C7);
+              statusTextColor = isDark ? AppConstants.warningColor : const Color(0xFF92400E);
+              break;
+          }
+
           return Card(
-            margin: const EdgeInsets.only(bottom: 6),
+            margin: const EdgeInsets.only(bottom: 8),
             color: itemBg,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
-              side: BorderSide(color: Theme.of(context).dividerColor),
+              side: BorderSide(color: borderColor),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 children: [
                   Row(
@@ -587,10 +604,20 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                       Expanded(
                         child: Text(
                           deliverable.title,
-                          style: TextStyle(fontWeight: FontWeight.w700, color: onSurface),
+                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: onSurface),
                         ),
                       ),
-                      Text(statusLabel, style: TextStyle(fontSize: 11, color: onSurfaceSecondary)),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: statusBg,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          statusLabel,
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: statusTextColor),
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       IconButton(
                         icon: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.redAccent),
@@ -605,35 +632,42 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: Slider(
-                          value: deliverable.progressPercent.toDouble(),
-                          min: 0,
-                          max: 100,
-                          divisions: 20,
-                          label: '${deliverable.progressPercent}%',
-                          onChanged: (value) {
-                            final percent = value.round();
-                            provider.updateDeliverable(
-                              deliverable.copyWith(
-                                progressPercent: percent,
-                                status: percent == 100
-                                    ? DeliverableStatus.completed
-                                    : percent == 0
-                                        ? DeliverableStatus.pending
-                                        : DeliverableStatus.inProgress,
-                              ),
-                            );
-                          },
+                        child: SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: AppConstants.primaryColor,
+                            inactiveTrackColor: isDark ? AppConstants.elevatedSurfaceColor : const Color(0xFFCBD5E1),
+                            thumbColor: AppConstants.primaryColor,
+                          ),
+                          child: Slider(
+                            value: deliverable.progressPercent.toDouble(),
+                            min: 0,
+                            max: 100,
+                            divisions: 20,
+                            label: '${deliverable.progressPercent}%',
+                            onChanged: (value) {
+                              final percent = value.round();
+                              provider.updateDeliverable(
+                                deliverable.copyWith(
+                                  progressPercent: percent,
+                                  status: percent == 100
+                                      ? DeliverableStatus.completed
+                                      : percent == 0
+                                          ? DeliverableStatus.pending
+                                          : DeliverableStatus.inProgress,
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
-                      Text('${deliverable.progressPercent}%', style: TextStyle(color: onSurface)),
+                      Text('${deliverable.progressPercent}%', style: TextStyle(fontWeight: FontWeight.bold, color: onSurface)),
                     ],
                   ),
                   Row(
                     children: [
-                      Text('${deliverable.type} • Prioritas ${deliverable.priority}', style: TextStyle(fontSize: 11, color: onSurfaceSecondary)),
+                      Text('${deliverable.type} • Prioritas ${deliverable.priority}', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: onSurfaceSecondary)),
                       const Spacer(),
-                      Text(deliverable.ownerName, style: TextStyle(fontSize: 11, color: onSurfaceSecondary)),
+                      Text(deliverable.ownerName, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: onSurfaceSecondary)),
                     ],
                   ),
                 ],

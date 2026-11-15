@@ -311,39 +311,47 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
 
             // Quick Actions & Sync Bar
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _openElearningSyncDialog,
-                    icon: Icon(Icons.sync_rounded, size: 16, color: Theme.of(context).colorScheme.onSurface),
-                    label: Text('Sinkron E-Learning (.ics)', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface)),
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Theme.of(context).cardColor,
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                      side: const BorderSide(color: AppConstants.borderSubtleColor),
+            Builder(
+              builder: (ctx) {
+                final isDark = Theme.of(ctx).brightness == Brightness.dark;
+                final onSurface = isDark ? Colors.white : const Color(0xFF0F172A);
+                final btnBorder = BorderSide(color: isDark ? AppConstants.borderSubtleColor : const Color(0xFFD8E4F2));
+
+                return Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _openElearningSyncDialog,
+                        icon: Icon(Icons.sync_rounded, size: 16, color: onSurface),
+                        label: Text('Sinkron E-Learning (.ics)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: onSurface)),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Theme.of(ctx).cardColor,
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                          side: btnBorder,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-                      );
-                    },
-                    icon: const Icon(Icons.edit_note_rounded, size: 18, color: Color(0xFF6B8E78)),
-                    label: Text('Edit Profil', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface)),
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Theme.of(context).cardColor,
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                      side: const BorderSide(color: AppConstants.borderSubtleColor),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.edit_note_rounded, size: 18, color: Color(0xFF6B8E78)),
+                        label: Text('Edit Profil', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: onSurface)),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Theme.of(ctx).cardColor,
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                          side: btnBorder,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 12),
 
@@ -426,17 +434,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFilterChip(String label, TaskFilter filter, TaskProvider provider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = provider.selectedFilter == filter;
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
       selectedColor: AppConstants.primaryColor,
-      backgroundColor: Theme.of(context).cardColor,
+      checkmarkColor: Colors.white,
+      backgroundColor: isDark ? AppConstants.cardColor : Colors.white,
       side: BorderSide(
-        color: isSelected ? AppConstants.primaryColor : AppConstants.borderSubtleColor,
+        color: isSelected
+            ? AppConstants.primaryColor
+            : (isDark ? AppConstants.borderSubtleColor : const Color(0xFFD8E4F2)),
       ),
       labelStyle: TextStyle(
-        color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65),
+        color: isSelected
+            ? Colors.white
+            : (isDark ? Colors.white70 : const Color(0xFF1E293B)),
         fontWeight: FontWeight.bold,
         fontSize: 12,
       ),

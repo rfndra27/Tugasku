@@ -27,7 +27,7 @@ class StreakCounterWidget extends StatelessWidget {
               : theme.cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isStreakActive ? AppConstants.warningColor : AppConstants.borderSubtleColor,
+            color: isStreakActive ? AppConstants.warningColor : theme.dividerColor,
             width: 1.2,
           ),
         ),
@@ -44,7 +44,7 @@ class StreakCounterWidget extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: isStreakActive ? AppConstants.warningColor : theme.colorScheme.onSurface.withValues(alpha: 0.65),
+                color: isStreakActive ? AppConstants.warningColor : (theme.brightness == Brightness.dark ? Colors.white70 : const Color(0xFF334155)),
               ),
             ),
           ],
@@ -64,7 +64,7 @@ class StreakCounterWidget extends StatelessWidget {
         backgroundColor: Theme.of(ctx).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppConstants.borderSubtleColor),
+          side: BorderSide(color: Theme.of(ctx).dividerColor),
         ),
         title: Row(
           children: [

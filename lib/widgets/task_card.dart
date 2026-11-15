@@ -199,7 +199,9 @@ class TaskCardWidget extends StatelessWidget {
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     decoration: task.isCompleted ? TextDecoration.lineThrough : null,
-                    color: task.isCompleted ? theme.colorScheme.onSurface.withValues(alpha: 0.6) : theme.colorScheme.onSurface,
+                    color: task.isCompleted
+                        ? (theme.brightness == Brightness.dark ? Colors.white60 : const Color(0xFF64748B))
+                        : (theme.brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A)),
                   ),
                 ),
 
@@ -209,7 +211,11 @@ class TaskCardWidget extends StatelessWidget {
                     task.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withValues(alpha: 0.65)),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: theme.brightness == Brightness.dark ? Colors.white70 : const Color(0xFF475569),
+                    ),
                   ),
                 ],
 
@@ -224,7 +230,7 @@ class TaskCardWidget extends StatelessWidget {
                         Icon(
                           Icons.schedule_rounded,
                           size: 14,
-                          color: task.isCompleted ? theme.colorScheme.onSurface.withValues(alpha: 0.5) : urgencyColor,
+                          color: task.isCompleted ? (theme.brightness == Brightness.dark ? Colors.white54 : const Color(0xFF64748B)) : urgencyColor,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -234,7 +240,9 @@ class TaskCardWidget extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: task.isCompleted ? theme.colorScheme.onSurface.withValues(alpha: 0.6) : urgencyColor,
+                            color: task.isCompleted
+                                ? (theme.brightness == Brightness.dark ? Colors.white60 : const Color(0xFF64748B))
+                                : urgencyColor,
                           ),
                         ),
                       ],
@@ -252,8 +260,8 @@ class TaskCardWidget extends StatelessWidget {
                             'Bobot ${task.weightPercentage.toStringAsFixed(0)}%',
                             style: TextStyle(
                               fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+                              fontWeight: FontWeight.w700,
+                              color: theme.brightness == Brightness.dark ? Colors.white70 : const Color(0xFF334155),
                             ),
                           ),
                         ),
@@ -284,14 +292,18 @@ class TaskCardWidget extends StatelessWidget {
                     children: [
                       Text(
                         'Subtask: ${task.completedSubtasks}/${task.totalSubtasks}',
-                        style: TextStyle(fontSize: 10, color: theme.colorScheme.onSurface.withValues(alpha: 0.65)),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: theme.brightness == Brightness.dark ? Colors.white60 : const Color(0xFF475569),
+                        ),
                       ),
                       Text(
                         '${(task.progressPercentage * 100).toInt()}%',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+                          color: theme.brightness == Brightness.dark ? Colors.white70 : const Color(0xFF334155),
                         ),
                       ),
                     ],

@@ -354,9 +354,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
     bool isHighlight = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    final onSurfaceSecondary = onSurface.withValues(alpha: 0.65);
-    final borderColor = Theme.of(context).dividerColor;
+    final onSurface = isDark ? Colors.white : const Color(0xFF0F172A);
+    final onSurfaceSecondary = isDark ? const Color(0xFF9CA3AF) : const Color(0xFF475569);
+    final borderColor = isDark ? AppConstants.borderSubtleColor : const Color(0xFFD8E4F2);
     final rowBg = isHighlight
         ? AppConstants.primaryColor.withValues(alpha: isDark ? 0.15 : 0.08)
         : Theme.of(context).cardColor;

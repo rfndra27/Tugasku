@@ -181,9 +181,9 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    final onSurfaceSecondary = onSurface.withValues(alpha: 0.65);
-    final borderColor = Theme.of(context).dividerColor;
+    final onSurface = isDark ? Colors.white : const Color(0xFF0F172A);
+    final onSurfaceSecondary = isDark ? const Color(0xFF9CA3AF) : const Color(0xFF475569);
+    final borderColor = isDark ? AppConstants.borderSubtleColor : const Color(0xFFD8E4F2);
     final inputBg = isDark ? AppConstants.inputColor : const Color(0xFFF1F5F9);
 
     return Container(

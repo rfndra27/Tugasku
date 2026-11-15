@@ -192,14 +192,14 @@ class _AiChatScreenState extends State<AiChatScreen> {
                     decoration: BoxDecoration(
                       color: msg.isUser
                           ? AppConstants.primaryColor
-                          : (isDark ? AppConstants.cardColor : const Color(0xFFE2E8F0)),
+                          : (isDark ? AppConstants.cardColor : const Color(0xFFF1F5F9)),
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(16),
                         topRight: const Radius.circular(16),
                         bottomLeft: Radius.circular(msg.isUser ? 16 : 4),
                         bottomRight: Radius.circular(msg.isUser ? 4 : 16),
                       ),
-                      border: msg.isUser ? null : Border.all(color: Theme.of(context).dividerColor),
+                      border: msg.isUser ? null : Border.all(color: isDark ? AppConstants.borderSubtleColor : const Color(0xFFE2E8F0)),
                     ),
                     child: Text(
                       msg.text,
@@ -208,7 +208,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                         height: 1.4,
                         color: msg.isUser
                             ? Colors.white
-                            : Theme.of(context).colorScheme.onSurface,
+                            : (isDark ? Colors.white : const Color(0xFF0F172A)),
                       ),
                     ),
                   ),
@@ -230,7 +230,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   const SizedBox(width: 8),
                   Text(
                     'TugasKu AI sedang berpikir...',
-                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
+                    style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : const Color(0xFF475569)),
                   ),
                 ],
               ),
@@ -253,11 +253,11 @@ class _AiChatScreenState extends State<AiChatScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurface,
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
                         ),
                       ),
-                      backgroundColor: Theme.of(context).cardColor,
-                      side: BorderSide(color: Theme.of(context).dividerColor),
+                      backgroundColor: isDark ? AppConstants.cardColor : Colors.white,
+                      side: BorderSide(color: isDark ? AppConstants.borderSubtleColor : const Color(0xFFD8E4F2)),
                       onPressed: () => _sendMessage(chipText),
                     ),
                   );
@@ -280,11 +280,11 @@ class _AiChatScreenState extends State<AiChatScreen> {
                 Expanded(
                   child: TextField(
                     controller: _textController,
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
                     decoration: InputDecoration(
                       hintText: 'Tanya tugas atau minta saran prioritas...',
                       hintStyle: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                        color: isDark ? Colors.white54 : const Color(0xFF94A3B8),
                       ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),

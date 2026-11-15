@@ -181,7 +181,8 @@ class AppTheme {
         primary: AppConstants.secondaryColor,
         secondary: AppConstants.primaryColor,
         surface: Colors.white,
-        onSurface: const Color(0xFF17324D),
+        onSurface: const Color(0xFF0F172A),
+        onSurfaceVariant: const Color(0xFF475569),
         error: AppConstants.errorColor,
       ),
       scaffoldBackgroundColor: const Color(0xFFF4F7FC),
@@ -190,8 +191,8 @@ class AppTheme {
 
     return baseLight.copyWith(
       textTheme: GoogleFonts.plusJakartaSansTextTheme(baseLight.textTheme).apply(
-        bodyColor: const Color(0xFF17324D),
-        displayColor: const Color(0xFF17324D),
+        bodyColor: const Color(0xFF0F172A),
+        displayColor: const Color(0xFF0F172A),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppConstants.secondaryColor,
@@ -202,6 +203,7 @@ class AppTheme {
           fontSize: 18,
           fontWeight: FontWeight.w700,
         ),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       cardTheme: CardThemeData(
         color: Colors.white,
@@ -219,12 +221,12 @@ class AppTheme {
           side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
         ),
         titleTextStyle: GoogleFonts.plusJakartaSans(
-          color: const Color(0xFF17324D),
+          color: const Color(0xFF0F172A),
           fontSize: 18,
           fontWeight: FontWeight.bold,
         ),
         contentTextStyle: GoogleFonts.plusJakartaSans(
-          color: const Color(0xFF64748B),
+          color: const Color(0xFF475569),
           fontSize: 14,
         ),
       ),
@@ -255,8 +257,9 @@ class AppTheme {
           borderSide: const BorderSide(color: AppConstants.primaryColor, width: 1.5),
         ),
         labelStyle: GoogleFonts.plusJakartaSans(
-          color: const Color(0xFF64748B),
+          color: const Color(0xFF475569),
           fontSize: 13,
+          fontWeight: FontWeight.w500,
         ),
         hintStyle: GoogleFonts.plusJakartaSans(
           color: const Color(0xFF94A3B8),
@@ -266,7 +269,9 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: Colors.white,
         disabledColor: const Color(0xFFF1F5F9),
-        selectedColor: AppConstants.primaryColor.withValues(alpha: 0.15),
+        selectedColor: AppConstants.primaryColor,
+        secondarySelectedColor: AppConstants.primaryColor,
+        checkmarkColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -274,12 +279,17 @@ class AppTheme {
         labelStyle: GoogleFonts.plusJakartaSans(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF17324D),
+          color: const Color(0xFF1E293B),
+        ),
+        secondaryLabelStyle: GoogleFonts.plusJakartaSans(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFF17324D),
+          foregroundColor: const Color(0xFF0F172A),
           side: const BorderSide(color: Color(0xFFD8E4F2)),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           shape: RoundedRectangleBorder(

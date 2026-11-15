@@ -231,10 +231,10 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           stream: provider.streamSubtasks(widget.task.id),
           builder: (context, snapshot) {
             final isDark = Theme.of(context).brightness == Brightness.dark;
-            final onSurface = Theme.of(context).colorScheme.onSurface;
-            final onSurfaceSecondary = onSurface.withValues(alpha: 0.65);
-            final borderColor = Theme.of(context).dividerColor;
-            final subContainerBg = isDark ? AppConstants.inputColor : const Color(0xFFF1F5F9);
+            final onSurface = isDark ? Colors.white : const Color(0xFF0F172A);
+            final onSurfaceSecondary = isDark ? const Color(0xFF9CA3AF) : const Color(0xFF475569);
+            final borderColor = isDark ? AppConstants.borderSubtleColor : const Color(0xFFE2E8F0);
+            final subContainerBg = isDark ? AppConstants.inputColor : const Color(0xFFF8FAFC);
 
             final subtasks = snapshot.data ?? [];
             final completedCount = subtasks.where((s) => s.isCompleted).length;

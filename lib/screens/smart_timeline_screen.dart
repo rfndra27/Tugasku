@@ -24,6 +24,8 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
     TimeOfDay startTime = const TimeOfDay(hour: 8, minute: 0);
     TimeOfDay endTime = const TimeOfDay(hour: 9, minute: 40);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -31,9 +33,9 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
           backgroundColor: Theme.of(ctx).cardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: AppConstants.borderSubtleColor),
+            side: BorderSide(color: isDark ? AppConstants.borderSubtleColor : const Color(0xFFE2E8F0)),
           ),
-          title: Text('Tambah Jadwal Kuliah', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+          title: Text('Tambah Jadwal Kuliah', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface, fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -130,6 +132,8 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
     TimeOfDay startTime = const TimeOfDay(hour: 15, minute: 0);
     TimeOfDay endTime = const TimeOfDay(hour: 16, minute: 30);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -137,9 +141,9 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
           backgroundColor: Theme.of(ctx).cardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: AppConstants.borderSubtleColor),
+            side: BorderSide(color: isDark ? AppConstants.borderSubtleColor : const Color(0xFFE2E8F0)),
           ),
-          title: Text('Tambah Agenda Pribadi', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+          title: Text('Tambah Agenda Pribadi', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface, fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -268,18 +272,24 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
                 children: List.generate(7, (index) {
                   final dayIndex = index + 1;
                   final isSelected = _selectedDate.weekday == dayIndex;
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
                       label: Text(_dayLabels[index]),
                       selected: isSelected,
                       selectedColor: AppConstants.primaryColor,
-                      backgroundColor: Theme.of(context).cardColor,
+                      checkmarkColor: Colors.white,
+                      backgroundColor: isDark ? AppConstants.cardColor : Colors.white,
                       side: BorderSide(
-                        color: isSelected ? AppConstants.primaryColor : AppConstants.borderSubtleColor,
+                        color: isSelected
+                            ? AppConstants.primaryColor
+                            : (isDark ? AppConstants.borderSubtleColor : const Color(0xFFD8E4F2)),
                       ),
                       labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65),
+                        color: isSelected
+                            ? Colors.white
+                            : (isDark ? Colors.white70 : const Color(0xFF1E293B)),
                         fontWeight: FontWeight.bold,
                       ),
                       onSelected: (selected) {
@@ -358,8 +368,9 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
 
   Widget _buildTimelineCard(TimelineItem item, TaskProvider provider) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    final onSurfaceSecondary = onSurface.withValues(alpha: 0.65);
+    final onSurface = isDark ? Colors.white : const Color(0xFF0F172A);
+    final onSurfaceSecondary = isDark ? const Color(0xFF9CA3AF) : const Color(0xFF475569);
+    final borderColor = isDark ? AppConstants.borderSubtleColor : const Color(0xFFE2E8F0);
     Color cardColor;
     Color accentColor;
     IconData icon;
@@ -368,7 +379,7 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
     switch (item.type) {
       case TimelineItemType.classSchedule:
         cardColor = isDark ? AppConstants.elevatedSurfaceColor : const Color(0xFFDCFCE7);
-        accentColor = isDark ? AppConstants.successColor : const Color(0xFF15803D);
+        accentColor = isDark ? AppConstants.successColor : const Color(0xFF166534);
         icon = Icons.school_rounded;
         badgeText = 'Kuliah';
         break;
@@ -380,13 +391,13 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
         break;
       case TimelineItemType.taskDeadline:
         cardColor = isDark ? const Color(0xFF332515) : const Color(0xFFFEF3C7);
-        accentColor = isDark ? AppConstants.warningColor : const Color(0xFFB45309);
+        accentColor = isDark ? AppConstants.warningColor : const Color(0xFF92400E);
         icon = Icons.alarm_rounded;
         badgeText = 'Deadline';
         break;
       case TimelineItemType.studyGapRecommendation:
         cardColor = isDark ? AppConstants.elevatedSurfaceColor : const Color(0xFFEDE9FE);
-        accentColor = AppConstants.primaryColor;
+        accentColor = isDark ? AppConstants.primaryColor : const Color(0xFF6D28D9);
         icon = Icons.bolt_rounded;
         badgeText = 'Rekomendasi Celah Belajar';
         break;
@@ -396,12 +407,12 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? AppConstants.cardColor : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: item.type == TimelineItemType.studyGapRecommendation
               ? AppConstants.primaryColor.withValues(alpha: 0.6)
-              : Theme.of(context).dividerColor,
+              : borderColor,
           width: item.type == TimelineItemType.studyGapRecommendation ? 1.5 : 1,
         ),
       ),
@@ -486,7 +497,7 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
                 const SizedBox(height: 2),
                 Text(
                   item.subtitle,
-                  style: TextStyle(fontSize: 12, color: onSurfaceSecondary),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: onSurfaceSecondary),
                 ),
               ],
             ),
