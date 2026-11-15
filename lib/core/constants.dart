@@ -17,7 +17,7 @@ class AppConstants {
       return '';
     }
   }
-  static const String geminiModel = 'gemini-3.8-flash';
+  static const String geminiModel = 'gemini-flash-lite-latest';
   static const String geminiEndpoint = 'https://generativelanguage.googleapis.com/v1beta/models';
 
   // Freemium Constraints

@@ -136,8 +136,12 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     try {
       await widget.firebaseService.signInWithGoogle();
     } catch (e) {
+      final rawError = e.toString();
+      final errorText = rawError.contains('package certificate hash')
+          ? 'Konfigurasi Google Sign-In belum lengkap. Tambahkan SHA-1 dan SHA-256 aplikasi Android di Firebase Console, aktifkan Google Sign-In, unduh ulang google-services.json, lalu build ulang aplikasi.'
+          : rawError.replaceAll(RegExp(r'\[.*?\]'), '').trim();
       setState(() {
-        _errorMessage = 'Gagal masuk dengan Google: ${e.toString().replaceAll(RegExp(r'\[.*?\]'), '').trim()}';
+        _errorMessage = 'Gagal masuk dengan Google: $errorText';
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);

@@ -65,6 +65,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _confirmSignOut() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Theme.of(ctx).cardColor,
+        title: Text('Keluar dari Akun?', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+        content: Text('Anda harus masuk kembali untuk melihat data tugas.', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65))),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Keluar')),
+        ],
+      ),
+    );
+    if (confirm == true) await widget.firebaseService.signOut();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.sizeOf(context).width >= 900;
@@ -156,11 +172,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final provider = context.watch<TaskProvider>();
     final profile = provider.profile;
     final filteredTasks = provider.filteredTasks;
+    final isCompact = MediaQuery.sizeOf(context).width < 600;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: InkWell(
+         title: InkWell(
           onTap: () {
             Navigator.push(
               context,
@@ -168,10 +185,10 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
           borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+             child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
@@ -183,21 +200,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Column(
+                 Flexible(
+                   child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       profile?.fullName.isNotEmpty == true ? 'Halo, ${profile!.fullName.split(" ").first} 👋' : 'TugasKu',
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
-                    Text(
-                      profile?.major.isNotEmpty == true
+                     if (!isCompact)
+                       Text(
+                         profile?.major.isNotEmpty == true
                           ? '${profile!.major} • ${profile.university.isNotEmpty ? profile.university : "PNJ"}'
                           : (profile?.university.isNotEmpty == true ? profile!.university : AppConstants.appTagline),
-                      style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.78)),
-                    ),
+                         maxLines: 1,
+                         overflow: TextOverflow.ellipsis,
+                         style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.78)),
+                       ),
                   ],
-                ),
+                 ),
+                 ),
               ],
             ),
           ),
@@ -220,92 +242,58 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
-          Tooltip(
-            message: widget.isDarkMode ? 'Aktifkan light mode' : 'Aktifkan dark mode',
-            child: TextButton.icon(
-              icon: Icon(
-                widget.isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-              label: Text(
-                widget.isDarkMode ? 'Light' : 'Dark',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-              ),
-              onPressed: widget.onToggleTheme,
+          IconButton(
+            tooltip: widget.isDarkMode ? 'Aktifkan light mode' : 'Aktifkan dark mode',
+            icon: Icon(
+              widget.isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+              color: Colors.white,
+              size: 19,
             ),
+            onPressed: widget.onToggleTheme,
           ),
 
           // Streak Counter Widget
           StreakCounterWidget(profile: profile),
           const SizedBox(width: 8),
 
-          // Group Projects button
-          IconButton(
-            icon: const Icon(Icons.groups_rounded, color: Colors.white),
-            tooltip: 'Tugas Kelompok',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const GroupTaskScreen()),
-              );
-            },
-          ),
-
-          // Premium badge
-          IconButton(
-            icon: Icon(
-              Icons.workspace_premium_rounded,
-              color: profile?.isPremium == true ? AppConstants.warningColor : Colors.white,
-            ),
-            tooltip: 'TugasKu Premium',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PremiumScreen()),
-              );
-            },
-          ),
-
-          // Logout
-          IconButton(
-            icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 20),
-            tooltip: 'Keluar',
-            onPressed: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  backgroundColor: Theme.of(context).cardColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: const BorderSide(color: AppConstants.borderSubtleColor),
-                  ),
-                  title: Text('Keluar dari Akun?', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
-                  content: Text(
-                    'Anda harus masuk kembali untuk melihat data tugas.',
-                    style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65)),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, false),
-                      child: Text('Batal', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65))),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(ctx, true),
-                      style: ElevatedButton.styleFrom(backgroundColor: AppConstants.errorColor),
-                      child: const Text('Keluar'),
-                    ),
-                  ],
-                ),
-              );
-              if (confirm == true) {
-                await widget.firebaseService.signOut();
-              }
-            },
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
+           if (isCompact)
+             PopupMenuButton<String>(
+               icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
+               onSelected: (value) {
+                 if (value == 'groups') {
+                   Navigator.push(context, MaterialPageRoute(builder: (_) => const GroupTaskScreen()));
+                 } else if (value == 'premium') {
+                   Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumScreen()));
+                 } else if (value == 'logout') {
+                   _confirmSignOut();
+                 }
+               },
+               itemBuilder: (_) => const [
+                 PopupMenuItem(value: 'groups', child: Text('Tugas Kelompok')),
+                 PopupMenuItem(value: 'premium', child: Text('TugasKu Premium')),
+                 PopupMenuItem(value: 'logout', child: Text('Keluar')),
+               ],
+             )
+           else ...[
+             IconButton(
+               icon: const Icon(Icons.groups_rounded, color: Colors.white),
+               tooltip: 'Tugas Kelompok',
+               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GroupTaskScreen())),
+             ),
+             IconButton(
+               icon: Icon(Icons.workspace_premium_rounded, color: profile?.isPremium == true ? AppConstants.warningColor : Colors.white),
+               tooltip: 'TugasKu Premium',
+               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumScreen())),
+             ),
+             IconButton(
+               icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 20),
+               tooltip: 'Keluar',
+               onPressed: _confirmSignOut,
+             ),
+           ],
+         ],
+       ),
+       body: RefreshIndicator(
         color: AppConstants.primaryColor,
         backgroundColor: Theme.of(context).cardColor,
         onRefresh: () async {

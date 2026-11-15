@@ -57,6 +57,22 @@ class AiService {
     _geminiApiKey = key;
   }
 
+  AiGroupProjectDraft parseGroupProjectMessage(String text) {
+    final phoneMatch = RegExp(r'(?:\+?62|0)\s*\d(?:[\d\s-]{7,})').firstMatch(text);
+    final phone = phoneMatch?.group(0)?.replaceAll(RegExp(r'[^0-9]'), '') ?? '';
+    String field(String pattern, String fallback) {
+      final match = RegExp('$pattern\\s*[:=-]\\s*([^,;\\n]+)', caseSensitive: false).firstMatch(text);
+      return match?.group(1)?.trim() ?? fallback;
+    }
+    final normalizedPhone = phone.startsWith('0') ? '62${phone.substring(1)}' : phone;
+    return AiGroupProjectDraft(
+      title: field(r'(?:tugas|proyek|project)', text.split(RegExp(r'[,\n]')).first.trim()),
+      courseName: field(r'(?:mata kuliah|matkul|kuliah)', 'Mata Kuliah'),
+      leaderName: field(r'(?:ketua|dibuat oleh|leader)', ''),
+      leaderPhone: normalizedPhone,
+    );
+  }
+
   // ----------------------------------------------------
   // 1. SMART TASK INPUT PARSER
   // ----------------------------------------------------
@@ -364,12 +380,11 @@ Keluarkan HANYA JSON array tanpa markdown:
     // Check AI Quota
     // If the quota service is temporarily unavailable, continue with the
     // grounded local fallback instead of leaving the user without an answer.
-    var quotaServiceUnavailable = false;
     try {
       final quotaResult = await firebaseService
           .checkAndIncrementAiQuota()
-          .timeout(const Duration(seconds: 6));
-      if (quotaResult['allowed'] != true) {
+          .timeout(const Duration(seconds: 4));
+      if (quotaResult['allowed'] != true && quotaResult['is_quota_exceeded'] == true) {
         return AiActionResult(
           success: false,
           isQuotaExceeded: true,
@@ -377,7 +392,7 @@ Keluarkan HANYA JSON array tanpa markdown:
         );
       }
     } catch (_) {
-      quotaServiceUnavailable = true;
+      // Continue to Gemini or local fallback if quota check is unreachable
     }
 
     final tasksContext = activeTasks.isEmpty
@@ -387,22 +402,23 @@ Keluarkan HANYA JSON array tanpa markdown:
             return '- [${t.courseName}] "${t.title}" | Deadline: $formattedDate | Bobot: ${t.weightPercentage}% | Skor Prioritas: ${t.priorityScore.toStringAsFixed(1)} | Subtask: ${t.completedSubtasks}/${t.totalSubtasks}';
           }).join('\n');
 
-    if (!quotaServiceUnavailable && _geminiApiKey.isNotEmpty) {
+    if (_geminiApiKey.isNotEmpty) {
       try {
         final prompt = '''
-Kamu adalah "TugasKu AI", asisten produktivitas dan teman belajar mahasiswa Indonesia yang ramah, solutif, dan suportif.
-JAWABANMU HARUS 100% BERDASARKAN DATA TUGAS NYATA MAHASISWA DI BAWAH INI:
+Kamu adalah "TugasKu AI", asisten produktivitas dan teman belajar mahasiswa Indonesia yang ramah, solutif, cerdas, dan suportif.
 
-=== DAFTAR TUGAS AKTIF MAHASISWA ===
+DAFTAR TUGAS AKTIF MAHASISWA:
 $tasksContext
-====================================
 
-Pertanyaan Mahasiswa: "$userQuestion"
+Pertanyaan / Obrolan Mahasiswa: "$userQuestion"
 
-Pedoman Menjawab:
-1. Berikan rekomendasi konkret tugas mana yang harus dicicil lebih dulu berdasarkan skor prioritas dan bobot nilai.
-2. Gunakan gaya bahasa kasual, bersahabat, menyemangati mahasiswa, dan terstruktur rapi dengan bullet points.
-3. Jangan mengarang tugas yang tidak tercantum dalam daftar tugas aktif di atas.
+Panduan Menjawab:
+1. Jawab mahasiswa dengan gaya bahasa ramah, kasual (seperti sesama mahasiswa atau mentor santai), dan gunakan emoji yang relevan.
+2. Jika ada tugas aktif, berikan rekomendasi konkret tugas mana yang harus dicicil lebih dulu berdasarkan skor prioritas dan bobot nilai. Jangan mengarang tugas yang tidak tercantum dalam daftar tugas aktif di atas.
+3. Jika daftar tugas masih kosong atau belum ada tugas aktif:
+   - Jika mahasiswa bertanya soal tugas, beri tahu dengan santai bahwa belum ada tugas yang terdaftar dan ajak mereka menambahkan tugas di halaman Tugas agar bisa dibantu atur jadwal dan prioritasnya.
+   - Jika mahasiswa bertanya santai, menyapa (halo), minta tips, atau topik obrolan bebas (hobi, analogi belajar, dll.), jawab dengan cerdas, ramah, dan tetap selipkan motivasi belajar/produktivitas.
+4. Jawab secara ringkas, jelas, dan rapi dengan bullet points bila perlu.
 ''';
 
         final url = Uri.parse(
@@ -419,16 +435,18 @@ Pedoman Menjawab:
               }
             ],
             'generationConfig': {
-              'temperature': 0.4,
+              'temperature': 0.7,
             }
           }),
-        ).timeout(const Duration(seconds: 30));
+        ).timeout(const Duration(seconds: 15));
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           final parts = data['candidates']?[0]?['content']?['parts'] as List? ?? [];
           final answer = parts.map((p) => p['text']?.toString() ?? '').where((t) => t.isNotEmpty).join('\n');
-          return AiActionResult(success: true, data: answer);
+          if (answer.trim().isNotEmpty) {
+            return AiActionResult(success: true, data: answer.trim());
+          }
         }
       } catch (_) {
         // Fallback to grounded local response
@@ -520,4 +538,18 @@ Pedoman Menjawab:
 
     return sb.toString();
   }
+}
+
+class AiGroupProjectDraft {
+  final String title;
+  final String courseName;
+  final String leaderName;
+  final String leaderPhone;
+
+  const AiGroupProjectDraft({
+    required this.title,
+    required this.courseName,
+    required this.leaderName,
+    required this.leaderPhone,
+  });
 }

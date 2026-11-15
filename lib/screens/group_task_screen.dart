@@ -19,6 +19,7 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
     final courseController = TextEditingController();
     final leaderNameController = TextEditingController();
     final leaderPhoneController = TextEditingController();
+    final messageController = TextEditingController();
 
     showDialog(
       context: context,
@@ -32,7 +33,33 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
+             children: [
+              TextField(
+                controller: messageController,
+                maxLines: 3,
+                style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
+                decoration: const InputDecoration(
+                  labelText: 'Pesan tugas (opsional)',
+                  hintText: 'Contoh: Tugas presentasi untuk matkul Basis Data, ketua Budi, WA 08123456789',
+                  prefixIcon: Icon(Icons.auto_awesome_rounded),
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  icon: const Icon(Icons.auto_fix_high_rounded, size: 18),
+                  label: const Text('Isi otomatis dengan AI'),
+                  onPressed: () {
+                    final message = messageController.text.trim();
+                    if (message.isEmpty) return;
+                    final draft = context.read<TaskProvider>().aiService.parseGroupProjectMessage(message);
+                    titleController.text = draft.title;
+                    courseController.text = draft.courseName;
+                    leaderNameController.text = draft.leaderName;
+                    leaderPhoneController.text = draft.leaderPhone;
+                  },
+                ),
+              ),
               TextField(
                 controller: titleController,
                 style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),

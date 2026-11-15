@@ -532,11 +532,11 @@ class FirebaseService {
       // Local fallback quota enforcement
       final user = currentUser;
       if (user == null) {
-        return {'allowed': false, 'message': 'Belum login'};
+        return {'allowed': true, 'message': 'Mode Tamu/Demo', 'remaining': AppConstants.freeAiMonthlyQuota};
       }
       final profile = await getUserProfile(user.uid).timeout(const Duration(seconds: 10));
       if (profile == null) {
-        return {'allowed': false, 'message': 'Profil tidak ditemukan'};
+        return {'allowed': true, 'message': 'Mode Tamu/Demo', 'remaining': AppConstants.freeAiMonthlyQuota};
       }
       if (profile.isPremium) {
         return {'allowed': true, 'is_premium': true, 'usage_count': profile.aiUsageCount, 'remaining': -1};
@@ -545,6 +545,7 @@ class FirebaseService {
         return {
           'allowed': false,
           'is_premium': false,
+          'is_quota_exceeded': true,
           'usage_count': profile.aiUsageCount,
           'remaining': 0,
           'message': 'Kuota AI gratis 5x/bulan sudah habis. Upgrade ke Premium!',
