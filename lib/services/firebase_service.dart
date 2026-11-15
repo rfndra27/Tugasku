@@ -641,9 +641,11 @@ class FirebaseService {
     try {
       return _firestore.collection('group_invitations')
           .where('recipient_user_id', isEqualTo: userId)
-          .where('status', isEqualTo: 'pending')
           .snapshots()
-          .map((snap) => snap.docs.map(GroupInvitationModel.fromFirestore).toList());
+          .map((snap) => snap.docs
+              .map(GroupInvitationModel.fromFirestore)
+              .where((invitation) => invitation.status == 'pending')
+              .toList());
     } catch (_) {
       return Stream.value([]);
     }

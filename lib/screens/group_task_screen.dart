@@ -192,6 +192,75 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
     }
   }
 
+  void _showGroupInvitationsDialog() {
+    final invitations = context.read<TaskProvider>().groupInvitations;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Theme.of(ctx).cardColor,
+        title: Row(
+          children: [
+            const Icon(Icons.notifications_active_rounded, color: AppConstants.primaryColor),
+            const SizedBox(width: 8),
+            Text('Notifikasi Kelompok', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+          ],
+        ),
+        content: invitations.isEmpty
+            ? Text(
+                'Belum ada undangan kelompok.',
+                style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.7)),
+              )
+            : SizedBox(
+                width: double.maxFinite,
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: invitations.length,
+                  separatorBuilder: (_, _) => const Divider(height: 16),
+                  itemBuilder: (_, index) {
+                    final invitation = invitations[index];
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const CircleAvatar(
+                        backgroundColor: Color(0xFFEDE9FE),
+                        child: Icon(Icons.groups_rounded, color: AppConstants.primaryColor),
+                      ),
+                      title: Text(
+                        invitation.projectTitle,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      subtitle: Text('Dari ${invitation.senderName}\n${invitation.courseName}'),
+                      isThreeLine: true,
+                      trailing: ElevatedButton(
+                        onPressed: () async {
+                          try {
+                            await context.read<TaskProvider>().acceptGroupInvitation(invitation);
+                            if (ctx.mounted) Navigator.pop(ctx);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Undangan kelompok diterima.')),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Gagal menerima undangan: $e')),
+                              );
+                            }
+                          }
+                        },
+                        child: const Text('Terima'),
+                      ),
+                    );
+                  },
+                ),
+              ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Tutup')),
+        ],
+      ),
+    );
+  }
+
   void _showAddMemberDialog(GroupProjectModel project, bool isPremium) {    if (!isPremium && project.members.length >= AppConstants.freeMaxGroupMembers) {
       showDialog(
         context: context,
@@ -677,6 +746,36 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
       appBar: AppBar(
         title: const Text('Tugas Kelompok & Kolaborasi'),
         actions: [
+          Consumer<TaskProvider>(
+            builder: (context, provider, _) {
+              final count = provider.groupInvitations.length;
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_none_rounded),
+                    tooltip: 'Notifikasi Kelompok',
+                    onPressed: _showGroupInvitationsDialog,
+                  ),
+                  if (count > 0)
+                    Positioned(
+                      right: 7,
+                      top: 7,
+                      child: Container(
+                        constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                        child: Text(
+                          count > 9 ? '9+' : '$count',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.group_add_rounded),
             tooltip: 'Buat Kelompok Baru',
@@ -718,9 +817,10 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: projects.length,
+              itemCount: projects.length + 1,
               itemBuilder: (context, index) {
-                final project = projects[index];
+                if (index == 0) return _buildInvitationBanner(provider);
+                final project = projects[index - 1];
                 return Card(
                   color: Theme.of(context).cardColor,
                   margin: const EdgeInsets.only(bottom: 16),
