@@ -107,7 +107,7 @@ Format JSON yang wajib dihasilkan:
               'temperature': 0.1,
             }
           }),
-        );
+        ).timeout(const Duration(seconds: 30));
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
@@ -285,7 +285,7 @@ Keluarkan HANYA JSON array tanpa markdown:
               'temperature': 0.2,
             }
           }),
-        );
+        ).timeout(const Duration(seconds: 30));
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
@@ -413,7 +413,7 @@ Pedoman Menjawab:
               'temperature': 0.4,
             }
           }),
-        );
+        ).timeout(const Duration(seconds: 30));
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);

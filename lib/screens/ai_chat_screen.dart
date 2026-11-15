@@ -66,36 +66,39 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
     _scrollToBottom();
 
-    final provider = context.read<TaskProvider>();
-    final result = await provider.aiService.askAssistant(
-      userQuestion: text,
-      activeTasks: provider.activeTasks,
-    );
+    try {
+      final provider = context.read<TaskProvider>();
+      final result = await provider.aiService.askAssistant(
+        userQuestion: text,
+        activeTasks: provider.activeTasks,
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() => _isSending = false);
-
-    if (result.isQuotaExceeded) {
-      _showPaywallPrompt(result.errorMessage ?? 'Kuota AI telah habis.');
-      return;
-    }
-
-    if (result.success && result.data != null) {
-      setState(() {
-        _messages.add(ChatMessage(text: result.data!, isUser: false));
-      });
-      _scrollToBottom();
-    } else {
+      if (result.isQuotaExceeded) {
+        _showPaywallPrompt(result.errorMessage ?? 'Kuota AI telah habis.');
+      } else {
+        final reply = result.success && result.data != null
+            ? result.data!
+            : (result.errorMessage ?? 'Maaf, terjadi kendala saat memproses jawabanmu. Silakan coba lagi.');
+        setState(() {
+          _messages.add(ChatMessage(text: reply, isUser: false));
+        });
+        _scrollToBottom();
+      }
+    } catch (error) {
+      if (!mounted) return;
       setState(() {
         _messages.add(
           ChatMessage(
-            text: result.errorMessage ?? 'Maaf, terjadi kendala saat memproses jawabanmu. Silakan coba lagi.',
+            text: 'AI tidak dapat dihubungi saat ini. Periksa koneksi internet atau konfigurasi API, lalu coba lagi.',
             isUser: false,
           ),
         );
       });
       _scrollToBottom();
+    } finally {
+      if (mounted) setState(() => _isSending = false);
     }
   }
 

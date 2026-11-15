@@ -526,7 +526,7 @@ class FirebaseService {
   Future<Map<String, dynamic>> checkAndIncrementAiQuota() async {
     try {
       final callable = _functions.httpsCallable('checkAndIncrementAiQuota');
-      final result = await callable.call();
+      final result = await callable.call().timeout(const Duration(seconds: 15));
       return Map<String, dynamic>.from(result.data as Map);
     } catch (_) {
       // Local fallback quota enforcement
@@ -534,7 +534,7 @@ class FirebaseService {
       if (user == null) {
         return {'allowed': false, 'message': 'Belum login'};
       }
-      final profile = await getUserProfile(user.uid);
+      final profile = await getUserProfile(user.uid).timeout(const Duration(seconds: 10));
       if (profile == null) {
         return {'allowed': false, 'message': 'Profil tidak ditemukan'};
       }
@@ -554,7 +554,7 @@ class FirebaseService {
       await _firestore.collection('profiles').doc(user.uid).update({
         'ai_usage_count': newCount,
         'ai_usage_reset_date': FieldValue.serverTimestamp(),
-      });
+      }).timeout(const Duration(seconds: 10));
       return {
         'allowed': true,
         'is_premium': false,
