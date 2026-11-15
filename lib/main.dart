@@ -66,7 +66,9 @@ class TugasKuApp extends StatefulWidget {
 }
 
 class _TugasKuAppState extends State<TugasKuApp> {
-  ThemeMode _themeMode = ThemeMode.dark;
+  // Start new sessions in light mode. Users can still switch to dark mode
+  // using the theme toggle in the app.
+  ThemeMode _themeMode = ThemeMode.light;
   bool _showSplash = true;
 
   void _toggleTheme() {

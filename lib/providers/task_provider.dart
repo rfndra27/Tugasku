@@ -895,6 +895,9 @@ class TaskProvider with ChangeNotifier {
     required String name,
     required String phone,
     String role = 'member',
+    String roleLabel = '',
+    String email = '',
+    String? memberUserId,
   }) async {
     if (_userId == null) return;
 
@@ -923,6 +926,9 @@ class TaskProvider with ChangeNotifier {
               name: name,
               phone: phone,
               role: role,
+              roleLabel: roleLabel,
+              email: email,
+              memberUserId: memberUserId,
             ),
           ],
         );
@@ -942,7 +948,55 @@ class TaskProvider with ChangeNotifier {
       name: name,
       phone: phone,
       role: role,
+      roleLabel: roleLabel,
+      email: email,
+      memberUserId: memberUserId,
     );
+  }
+
+  Future<List<UserProfileModel>> searchUsersByEmail(String query) async {
+    final cleanQuery = query.trim().toLowerCase();
+    if (cleanQuery.isEmpty) return [];
+
+    if (AppConstants.useDemoData) {
+      final mockProfiles = [
+        UserProfileModel(
+          id: 'demo-user-1',
+          email: 'mahasiswa@tugasku.app',
+          fullName: 'Muhammad Aurakha',
+          university: 'Politeknik Negeri Jakarta',
+          phone: '08123456789',
+        ),
+        UserProfileModel(
+          id: 'demo-user-2',
+          email: 'remano@tugasku.app',
+          fullName: 'Mochmad Remano Darusatwiko',
+          university: 'Politeknik Negeri Jakarta',
+          phone: '08123456789',
+        ),
+        UserProfileModel(
+          id: 'demo-user-3',
+          email: 'novansya@tugasku.app',
+          fullName: 'Muhammad Novansya',
+          university: 'Politeknik Negeri Jakarta',
+          phone: '08123456780',
+        ),
+        UserProfileModel(
+          id: 'demo-user-4',
+          email: 'rafa@tugasku.app',
+          fullName: 'Riviera Rafa Andara',
+          university: 'Politeknik Negeri Jakarta',
+          phone: '08123456781',
+        ),
+      ];
+      return mockProfiles
+          .where((p) =>
+              p.email.toLowerCase().contains(cleanQuery) ||
+              p.fullName.toLowerCase().contains(cleanQuery))
+          .toList();
+    }
+
+    return await _firebaseService.searchProfilesByEmail(cleanQuery);
   }
 
   Future<void> deleteGroupMember({
@@ -977,6 +1031,18 @@ class TaskProvider with ChangeNotifier {
       projectId: projectId,
       memberId: memberId,
     );
+
+    // Update immediately instead of waiting for the members stream. This also
+    // prevents a stale stream snapshot from making the deleted member appear
+    // to remain in the current screen.
+    final index = _groupProjects.indexWhere((p) => p.id == projectId);
+    if (index >= 0) {
+      final project = _groupProjects[index];
+      _groupProjects[index] = project.copyWith(
+        members: project.members.where((m) => m.id != memberId).toList(),
+      );
+      notifyListeners();
+    }
   }
 
   Future<void> deleteGroupProject(String projectId) async {

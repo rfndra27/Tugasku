@@ -8,6 +8,8 @@ class GroupMemberModel {
   final String phone;
   final String role;
   final String roleLabel;
+  final String email;
+  final String? memberUserId;
   final DateTime joinedAt;
 
   GroupMemberModel({
@@ -17,6 +19,8 @@ class GroupMemberModel {
     required this.phone,
     this.role = 'member',
     this.roleLabel = '',
+    this.email = '',
+    this.memberUserId,
     DateTime? joinedAt,
   }) : joinedAt = joinedAt ?? DateTime.now();
 
@@ -29,6 +33,8 @@ class GroupMemberModel {
     String? phone,
     String? role,
     String? roleLabel,
+    String? email,
+    String? memberUserId,
     DateTime? joinedAt,
   }) {
     return GroupMemberModel(
@@ -38,6 +44,8 @@ class GroupMemberModel {
       phone: phone ?? this.phone,
       role: role ?? this.role,
       roleLabel: roleLabel ?? this.roleLabel,
+      email: email ?? this.email,
+      memberUserId: memberUserId ?? this.memberUserId,
       joinedAt: joinedAt ?? this.joinedAt,
     );
   }
@@ -49,6 +57,8 @@ class GroupMemberModel {
         'phone': phone,
         'role': role,
         'role_label': roleLabel,
+        'email': email,
+        'member_user_id': memberUserId,
         'joined_at': Timestamp.fromDate(joinedAt),
       };
 
@@ -66,6 +76,8 @@ class GroupMemberModel {
       phone: json['phone']?.toString() ?? '',
       role: json['role']?.toString() ?? 'member',
       roleLabel: json['role_label']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      memberUserId: json['member_user_id']?.toString(),
       joinedAt: joinedAt,
     );
   }

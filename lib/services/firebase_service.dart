@@ -173,6 +173,70 @@ class FirebaseService {
     return UserProfileModel.fromFirestore(doc);
   }
 
+  Future<List<UserProfileModel>> searchProfilesByEmail(String query) async {
+    final cleanQuery = query.trim().toLowerCase();
+    if (cleanQuery.isEmpty) return [];
+
+    try {
+      final results = <UserProfileModel>[];
+      final seenIds = <String>{};
+
+      // 1. Query profiles collection where email starts with cleanQuery
+      final snapshot = await _firestore
+          .collection('profiles')
+          .where('email', isGreaterThanOrEqualTo: cleanQuery)
+          .where('email', isLessThanOrEqualTo: '$cleanQuery\uf8ff')
+          .limit(8)
+          .get();
+
+      for (final doc in snapshot.docs) {
+        final profile = UserProfileModel.fromFirestore(doc);
+        if (seenIds.add(profile.id)) {
+          results.add(profile);
+        }
+      }
+
+      // 2. If query had uppercase or difference from lowercase, also query original string
+      if (query.trim() != cleanQuery) {
+        final rawSnap = await _firestore
+            .collection('profiles')
+            .where('email', isGreaterThanOrEqualTo: query.trim())
+            .where('email', isLessThanOrEqualTo: '${query.trim()}\uf8ff')
+            .limit(8)
+            .get();
+        for (final doc in rawSnap.docs) {
+          final profile = UserProfileModel.fromFirestore(doc);
+          if (seenIds.add(profile.id)) {
+            results.add(profile);
+          }
+        }
+      }
+
+      // 3. Fallback: If few results, also match full_name prefix
+      if (results.length < 5) {
+        try {
+          final nameSnap = await _firestore
+              .collection('profiles')
+              .where('full_name', isGreaterThanOrEqualTo: query.trim())
+              .where('full_name', isLessThanOrEqualTo: '${query.trim()}\uf8ff')
+              .limit(5)
+              .get();
+          for (final doc in nameSnap.docs) {
+            final profile = UserProfileModel.fromFirestore(doc);
+            if (seenIds.add(profile.id)) {
+              results.add(profile);
+            }
+          }
+        } catch (_) {}
+      }
+
+      return results;
+    } catch (e) {
+      debugPrint('Error searching profiles by email: $e');
+      return [];
+    }
+  }
+
   Future<void> updateUserProfile(UserProfileModel profile) async {
     final currentAuthUser = _auth.currentUser;
     final uid = (currentAuthUser != null && currentAuthUser.uid.isNotEmpty) ? currentAuthUser.uid : profile.id;
@@ -197,8 +261,13 @@ class FirebaseService {
       'photo_data': profile.photoData,
     };
 
+    // Use merge for both existing and newly-created profiles. A profile
+    // stream can briefly emit no document while the account is being created;
+    // `update()` would fail in that case and make the form look like it did
+    // not save. `set(..., merge: true)` safely handles both cases and keeps
+    // non-editable profile fields intact.
     if (docSnap.exists) {
-      await docRef.update(editableData);
+      await docRef.set(editableData, SetOptions(merge: true));
     } else {
       await docRef.set({
         ...editableData,
@@ -525,6 +594,9 @@ class FirebaseService {
     required String name,
     required String phone,
     String role = 'member',
+    String roleLabel = '',
+    String email = '',
+    String? memberUserId,
   }) async {
     final memberRef = _firestore
         .collection('users')
@@ -540,6 +612,9 @@ class FirebaseService {
       'name': name,
       'phone': phone,
       'role': role,
+      'role_label': roleLabel,
+      'email': email,
+      'member_user_id': memberUserId,
       'joined_at': FieldValue.serverTimestamp(),
     });
   }
