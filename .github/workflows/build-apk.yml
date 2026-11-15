@@ -32,6 +32,11 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Configure Android local.properties
+        run: |
+          mkdir -p android
+          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
+
       - name: Get Dependencies
         run: flutter pub get
 
@@ -39,7 +44,7 @@ jobs:
         run: flutter test
 
       - name: Build Release APK
-        run: flutter build apk --release -v
+        run: flutter build apk --release
 
       - name: Prepare APK Output
         run: |
@@ -73,4 +78,3 @@ jobs:
           files: dist/TugasKu.apk
           draft: false
           prerelease: false
-
