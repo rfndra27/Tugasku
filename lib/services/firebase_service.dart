@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import '../core/constants.dart';
 import '../core/priority_calculator.dart';
 import '../models/class_schedule_model.dart';
@@ -174,12 +174,18 @@ class FirebaseService {
   }
 
   Future<void> updateUserProfile(UserProfileModel profile) async {
-    await _auth.currentUser?.updateDisplayName(profile.fullName);
-    final docRef = _firestore.collection('profiles').doc(profile.id);
+    final currentAuthUser = _auth.currentUser;
+    final uid = (currentAuthUser != null && currentAuthUser.uid.isNotEmpty) ? currentAuthUser.uid : profile.id;
+    final email = (currentAuthUser?.email != null && currentAuthUser!.email!.isNotEmpty)
+        ? currentAuthUser.email!
+        : profile.email;
+
+    await currentAuthUser?.updateDisplayName(profile.fullName);
+    final docRef = _firestore.collection('profiles').doc(uid);
     final docSnap = await docRef.get();
     final editableData = {
-      'id': profile.id,
-      'email': profile.email,
+      'id': uid,
+      'email': email,
       'full_name': profile.fullName,
       'university': profile.university,
       'nim': profile.nim,
@@ -207,7 +213,11 @@ class FirebaseService {
     }
 
     if (profile.phone.isNotEmpty) {
-      await upsertPhoneLookup(phone: profile.phone, email: profile.email, uid: profile.id);
+      try {
+        await upsertPhoneLookup(phone: profile.phone, email: email, uid: uid);
+      } catch (e) {
+        debugPrint('Warning: Phone lookup update failed: $e');
+      }
     }
   }
 

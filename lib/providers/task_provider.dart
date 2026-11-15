@@ -70,13 +70,13 @@ class TaskProvider with ChangeNotifier {
     int? avatarColor,
   }) async {
     final user = _firebaseService.currentUser;
-    final fallbackId = _userId ?? user?.uid ?? 'user-default';
-    final fallbackEmail = (_profile?.email.isNotEmpty == true) ? _profile!.email : (user?.email ?? '');
+    final effectiveUid = user?.uid ?? _userId ?? 'user-default';
+    final effectiveEmail = (user?.email?.isNotEmpty == true) ? user!.email! : (_profile?.email ?? '');
 
     final current = _profile ??
         UserProfileModel(
-          id: fallbackId,
-          email: fallbackEmail,
+          id: effectiveUid,
+          email: effectiveEmail,
           fullName: fullName,
           university: university,
           nim: nim ?? '',
@@ -88,6 +88,8 @@ class TaskProvider with ChangeNotifier {
         );
 
     final updatedProfile = current.copyWith(
+      id: effectiveUid,
+      email: effectiveEmail,
       fullName: fullName,
       university: university,
       nim: nim ?? current.nim,
