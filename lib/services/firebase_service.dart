@@ -617,6 +617,53 @@ class FirebaseService {
       'member_user_id': memberUserId,
       'joined_at': FieldValue.serverTimestamp(),
     });
+
+    if (memberUserId != null && memberUserId.isNotEmpty && email.isNotEmpty) {
+      final project = await _firestore.collection('users').doc(userId)
+          .collection('group_projects').doc(projectId).get();
+      final memberSnap = await project.reference.collection('members').get();
+      await _firestore.collection('group_invitations').add({
+        'recipient_user_id': memberUserId,
+        'recipient_email': email.toLowerCase(),
+        'project_id': projectId,
+        'project_title': project.data()?['title'] ?? 'Tugas Kelompok',
+        'course_name': project.data()?['course_name'] ?? 'Mata Kuliah',
+        'invite_code': project.data()?['invite_code'] ?? '',
+        'sender_name': _auth.currentUser?.displayName ?? 'Teman',
+        'members': memberSnap.docs.map((d) => d.data()).toList(),
+        'status': 'pending',
+        'created_at': FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
+  Stream<List<GroupInvitationModel>> streamGroupInvitations(String userId) {
+    try {
+      return _firestore.collection('group_invitations')
+          .where('recipient_user_id', isEqualTo: userId)
+          .where('status', isEqualTo: 'pending')
+          .snapshots()
+          .map((snap) => snap.docs.map(GroupInvitationModel.fromFirestore).toList());
+    } catch (_) {
+      return Stream.value([]);
+    }
+  }
+
+  Future<void> acceptGroupInvitation({required GroupInvitationModel invitation, required String userId}) async {
+    final projectRef = _firestore.collection('users').doc(userId).collection('group_projects').doc();
+    await projectRef.set({
+      'id': projectRef.id,
+      'user_id': userId,
+      'title': invitation.projectTitle,
+      'course_name': invitation.courseName,
+      'invite_code': invitation.inviteCode,
+      'created_at': FieldValue.serverTimestamp(),
+    });
+    for (final member in invitation.members) {
+      final ref = projectRef.collection('members').doc();
+      await ref.set({...member.toJson(), 'id': ref.id, 'project_id': projectRef.id});
+    }
+    await _firestore.collection('group_invitations').doc(invitation.id).update({'status': 'accepted'});
   }
 
   Future<void> deleteGroupMember({

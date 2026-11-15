@@ -685,7 +685,10 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
         ],
       ),
       body: projects.isEmpty
-          ? Center(
+          ? Column(
+              children: [
+                _buildInvitationBanner(provider),
+                Expanded(child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Column(
@@ -710,8 +713,8 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                       label: const Text('Buat Kelompok Baru'),
                     ),
                   ],
-                ),
-              ),
+                )))),
+              ],
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
@@ -868,10 +871,11 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                                         }
                                       }
                                     },
-                                    icon: const Icon(Icons.chat_rounded, size: 14, color: Colors.black87),
-                                    label: const Text('Remind WA', style: TextStyle(fontSize: 11, color: Colors.black87)),
+                                    icon: const Icon(Icons.chat_rounded, size: 14, color: Colors.white),
+                                    label: const Text('Remind WA', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold)),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppConstants.successColor,
+                                      foregroundColor: Colors.white,
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                       minimumSize: Size.zero,
                                     ),
@@ -899,6 +903,31 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                 );
               },
             ),
+    );
+  }
+
+  Widget _buildInvitationBanner(TaskProvider provider) {
+    if (provider.groupInvitations.isEmpty) return const SizedBox.shrink();
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Column(
+        children: provider.groupInvitations.map((invitation) => ListTile(
+          leading: const Icon(Icons.mail_outline_rounded),
+          title: Text('Undangan: ${invitation.projectTitle}'),
+          subtitle: Text('Dari ${invitation.senderName} • ${invitation.courseName}'),
+          trailing: ElevatedButton(
+            onPressed: () async {
+              try {
+                await provider.acceptGroupInvitation(invitation);
+                if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Undangan diterima.')));
+              } catch (e) {
+                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menerima undangan: $e')));
+              }
+            },
+            child: const Text('Terima'),
+          ),
+        )).toList(),
+      ),
     );
   }
 

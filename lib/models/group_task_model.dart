@@ -90,6 +90,49 @@ class GroupMemberModel {
   }
 }
 
+class GroupInvitationModel {
+  final String id;
+  final String recipientUserId;
+  final String recipientEmail;
+  final String projectId;
+  final String projectTitle;
+  final String courseName;
+  final String inviteCode;
+  final String senderName;
+  final List<GroupMemberModel> members;
+  final String status;
+
+  GroupInvitationModel({
+    required this.id,
+    required this.recipientUserId,
+    required this.recipientEmail,
+    required this.projectId,
+    required this.projectTitle,
+    required this.courseName,
+    required this.inviteCode,
+    required this.senderName,
+    required this.members,
+    this.status = 'pending',
+  });
+
+  factory GroupInvitationModel.fromFirestore(DocumentSnapshot doc) {
+    final data = (doc.data() as Map<String, dynamic>?) ?? {};
+    final rawMembers = data['members'] is List ? data['members'] as List : const [];
+    return GroupInvitationModel(
+      id: doc.id,
+      recipientUserId: data['recipient_user_id']?.toString() ?? '',
+      recipientEmail: data['recipient_email']?.toString() ?? '',
+      projectId: data['project_id']?.toString() ?? '',
+      projectTitle: data['project_title']?.toString() ?? 'Tugas Kelompok',
+      courseName: data['course_name']?.toString() ?? 'Mata Kuliah',
+      inviteCode: data['invite_code']?.toString() ?? '',
+      senderName: data['sender_name']?.toString() ?? 'Teman',
+      status: data['status']?.toString() ?? 'pending',
+      members: rawMembers.whereType<Map>().map((m) => GroupMemberModel.fromJson(Map<String, dynamic>.from(m))).toList(),
+    );
+  }
+}
+
 class GroupProjectModel {
   final String id;
   final String userId;

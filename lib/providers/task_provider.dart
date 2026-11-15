@@ -33,6 +33,7 @@ class TaskProvider with ChangeNotifier {
   List<ClassScheduleModel> _schedules = [];
   List<PersonalAgendaModel> _personalAgendas = [];
   List<GroupProjectModel> _groupProjects = [];
+  List<GroupInvitationModel> _groupInvitations = [];
   final Map<String, List<GroupDeliverableModel>> _deliverablesByProject = {};
   final Map<String, List<GroupActivityModel>> _activityByProject = {};
   bool _isLoading = false;
@@ -52,6 +53,7 @@ class TaskProvider with ChangeNotifier {
   StreamSubscription? _schedulesSub;
   StreamSubscription? _groupsSub;
   StreamSubscription? _agendasSub;
+  StreamSubscription? _invitationsSub;
   final List<StreamSubscription> _deliverablesSubs = [];
   final List<StreamSubscription> _activitySubs = [];
   final List<StreamSubscription> _membersSubs = [];
@@ -119,6 +121,7 @@ class TaskProvider with ChangeNotifier {
   List<ClassScheduleModel> get schedules => _schedules;
   List<PersonalAgendaModel> get personalAgendas => _personalAgendas;
   List<GroupProjectModel> get groupProjects => _groupProjects;
+  List<GroupInvitationModel> get groupInvitations => _groupInvitations;
   List<GroupDeliverableModel> deliverablesFor(String projectId) => _deliverablesByProject[projectId] ?? const [];
   List<GroupDeliverableModel> get allGroupDeliverables {
     final list = <GroupDeliverableModel>[];
@@ -181,6 +184,11 @@ class TaskProvider with ChangeNotifier {
       _loadDemoData(userId);
       return;
     }
+
+    _invitationsSub = _firebaseService.streamGroupInvitations(userId).listen((invitations) {
+      _groupInvitations = invitations;
+      notifyListeners();
+    });
 
     // 1. Profile Stream
     _profileSub = _firebaseService.streamUserProfile(userId).listen((profile) {
@@ -553,6 +561,7 @@ class TaskProvider with ChangeNotifier {
     _schedulesSub?.cancel();
     _groupsSub?.cancel();
     _agendasSub?.cancel();
+    _invitationsSub?.cancel();
     for (final sub in _deliverablesSubs) {
       sub.cancel();
     }
@@ -952,6 +961,11 @@ class TaskProvider with ChangeNotifier {
       email: email,
       memberUserId: memberUserId,
     );
+  }
+
+  Future<void> acceptGroupInvitation(GroupInvitationModel invitation) async {
+    if (_userId == null) return;
+    await _firebaseService.acceptGroupInvitation(invitation: invitation, userId: _userId!);
   }
 
   Future<List<UserProfileModel>> searchUsersByEmail(String query) async {

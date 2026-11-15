@@ -34,6 +34,13 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /group_invitations/{invitationId} {
+      allow create: if isAuthenticated() && request.resource.data.sender_name != null;
+      allow read: if isAuthenticated() && resource.data.recipient_user_id == request.auth.uid;
+      allow update: if isAuthenticated() && resource.data.recipient_user_id == request.auth.uid;
+      allow delete: if false;
+    }
+
     // User's private subcollections:
     // users/{userId}/courses/{courseId}
     // users/{userId}/tasks/{taskId}

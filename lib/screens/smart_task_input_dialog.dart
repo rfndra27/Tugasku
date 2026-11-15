@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../core/constants.dart';
+import '../models/group_task_model.dart';
+import '../models/subtask_model.dart';
 import '../models/task_model.dart';
+import '../models/user_profile_model.dart';
 import '../providers/task_provider.dart';
 import 'premium_screen.dart';
 
@@ -20,6 +23,16 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
   final _weightController = TextEditingController(text: '10');
   final _descController = TextEditingController();
 
+  // Group members state
+  final _emailSearchController = TextEditingController();
+  final _memberNameController = TextEditingController();
+  final _memberPhoneController = TextEditingController();
+  List<UserProfileModel> _searchResults = [];
+  bool _isSearching = false;
+  bool _hasSearched = false;
+  String? _selectedUserFeedback;
+  final List<GroupMemberModel> _addedMembers = [];
+
   DateTime _selectedDeadline = DateTime.now().add(const Duration(days: 3));
   bool _isGroupTask = false;
   bool _isAnalyzing = false;
@@ -33,6 +46,9 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
     _courseController.dispose();
     _weightController.dispose();
     _descController.dispose();
+    _emailSearchController.dispose();
+    _memberNameController.dispose();
+    _memberPhoneController.dispose();
     super.dispose();
   }
 
@@ -112,6 +128,67 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
     );
   }
 
+  Future<void> _searchUsers(String query) async {
+    final q = query.trim();
+    if (q.isEmpty) {
+      setState(() {
+        _searchResults = [];
+        _hasSearched = false;
+        _isSearching = false;
+      });
+      return;
+    }
+    setState(() => _isSearching = true);
+    final results = await context.read<TaskProvider>().searchUsersByEmail(q);
+    if (!mounted) return;
+    setState(() {
+      _searchResults = results;
+      _hasSearched = true;
+      _isSearching = false;
+    });
+  }
+
+  void _selectUser(UserProfileModel u) {
+    setState(() {
+      _memberNameController.text = u.fullName;
+      _memberPhoneController.text = u.phone;
+      _selectedUserFeedback = 'Akun "${u.fullName}" dipilih! Data nama & WA terisi otomatis.';
+      _searchResults = [];
+      _hasSearched = false;
+    });
+  }
+
+  void _addMemberToList() {
+    final name = _memberNameController.text.trim();
+    final phone = _memberPhoneController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nama rekan tim tidak boleh kosong.'), backgroundColor: Colors.redAccent),
+      );
+      return;
+    }
+
+    if (_addedMembers.any((m) => m.name.toLowerCase() == name.toLowerCase())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Rekan tim "$name" sudah ada di daftar.'), backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
+    setState(() {
+      _addedMembers.add(GroupMemberModel(
+        id: 'member-${DateTime.now().millisecondsSinceEpoch}',
+        projectId: '',
+        name: name,
+        phone: phone,
+      ));
+      _memberNameController.clear();
+      _memberPhoneController.clear();
+      _emailSearchController.clear();
+      _selectedUserFeedback = null;
+    });
+  }
+
   Future<void> _pickDeadline() async {
     final pickedDate = await showDatePicker(
       context: context,
@@ -152,6 +229,23 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
     }
 
     final taskProvider = context.read<TaskProvider>();
+    final initialSubtasks = <SubtaskModel>[];
+    if (_isGroupTask && _addedMembers.isNotEmpty) {
+      for (int i = 0; i < _addedMembers.length; i++) {
+        final m = _addedMembers[i];
+        initialSubtasks.add(
+          SubtaskModel(
+            id: '',
+            taskId: '',
+            title: 'Bagian tugas: ${m.name}',
+            assignedToName: m.name,
+            assignedToPhone: m.phone.isNotEmpty ? m.phone : null,
+            orderIndex: i,
+          ),
+        );
+      }
+    }
+
     final task = TaskModel(
       id: '',
       userId: taskProvider.userId ?? '',
@@ -162,10 +256,40 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
       weightPercentage: weight,
       source: _hasAnalyzed ? AppConstants.sourceAiSmartInput : AppConstants.sourceManual,
       isGroupTask: _isGroupTask,
+      subtasks: initialSubtasks,
       isCompleted: false,
     );
 
     await taskProvider.addTask(task);
+
+    // If it's a group task and members were added, optionally create a linked Group Project
+    if (_isGroupTask && _addedMembers.isNotEmpty) {
+      try {
+        final leaderName = taskProvider.profile?.fullName ?? 'Ketua';
+        final leaderPhone = taskProvider.profile?.phone ?? '';
+        final inviteCode = 'GRP-${(1000 + (DateTime.now().millisecondsSinceEpoch % 9000))}';
+        await taskProvider.createGroupProject(
+          title: title,
+          courseName: course.isNotEmpty ? course : 'Tugas Kelompok',
+          inviteCode: inviteCode,
+          leaderName: leaderName,
+          leaderPhone: leaderPhone,
+        );
+        final latestProjects = taskProvider.groupProjects;
+        if (latestProjects.isNotEmpty) {
+          final newProj = latestProjects.last;
+          for (final m in _addedMembers) {
+            await taskProvider.addGroupMember(
+              projectId: newProj.id,
+              name: m.name,
+              phone: m.phone,
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('Note: Optional group project sync: $e');
+      }
+    }
 
     if (mounted) {
       Navigator.pop(context);
@@ -253,11 +377,16 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
                       height: 16,
                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                     )
-                  : const Icon(Icons.auto_awesome, size: 18),
-              label: Text(_isAnalyzing ? 'Menganalisis Pesan...' : 'Analisis dengan AI ✨'),
+                  : const Icon(Icons.auto_awesome, size: 18, color: Colors.white),
+              label: Text(
+                _isAnalyzing ? 'Menganalisis Pesan...' : 'Analisis dengan AI ✨',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppConstants.primaryColor,
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
 
@@ -361,6 +490,247 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
               onChanged: (val) => setState(() => _isGroupTask = val),
             ),
 
+            if (_isGroupTask) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.group_add_rounded, size: 18, color: Theme.of(context).colorScheme.primary),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Tambah Anggota Kelompok',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Cari via email terdaftar agar nama & WA terisi otomatis, atau ketik langsung di bawah.',
+                      style: TextStyle(fontSize: 11, color: onSurfaceSecondary),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Search Email Field
+                    TextField(
+                      controller: _emailSearchController,
+                      keyboardType: TextInputType.emailAddress,
+                      style: TextStyle(color: onSurface, fontSize: 13),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        labelText: 'Cari Akun Terdaftar (Email)',
+                        hintText: 'nama@kampus.ac.id',
+                        prefixIcon: const Icon(Icons.person_search_rounded, size: 18),
+                        suffixIcon: _isSearching
+                            ? const Padding(
+                                padding: EdgeInsets.all(10),
+                                child: SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+                              )
+                            : (_emailSearchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear, size: 16),
+                                    onPressed: () {
+                                      _emailSearchController.clear();
+                                      setState(() {
+                                        _searchResults = [];
+                                        _hasSearched = false;
+                                      });
+                                    },
+                                  )
+                                : null),
+                      ),
+                      onChanged: (val) => _searchUsers(val),
+                      onSubmitted: (val) => _searchUsers(val),
+                    ),
+
+                    // Search Results List
+                    if (_searchResults.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        constraints: const BoxConstraints(maxHeight: 150),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: borderColor),
+                        ),
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          itemCount: _searchResults.length,
+                          separatorBuilder: (context, index) => const Divider(height: 1),
+                          itemBuilder: (ctx, i) {
+                            final u = _searchResults[i];
+                            final phoneDisplay = u.phone.isNotEmpty ? u.phone : 'Belum ada WA';
+                            return ListTile(
+                              dense: true,
+                              visualDensity: VisualDensity.compact,
+                              leading: CircleAvatar(
+                                radius: 14,
+                                backgroundColor: Color(u.avatarColor),
+                                child: Text(
+                                  u.fullName.isNotEmpty ? u.fullName[0].toUpperCase() : '?',
+                                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              title: Text(u.fullName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: onSurface)),
+                              subtitle: Text(
+                                '${u.email} • 📱 $phoneDisplay',
+                                style: TextStyle(fontSize: 10, color: onSurfaceSecondary),
+                              ),
+                              trailing: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppConstants.primaryColor,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  minimumSize: Size.zero,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                onPressed: () => _selectUser(u),
+                                child: const Text('Pilih', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold)),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+
+                    if (_hasSearched && _searchResults.isEmpty && !_isSearching) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6, bottom: 2),
+                        child: Text(
+                          'ℹ️ Email tidak ditemukan. Anda dapat mengisi nama dan nomor WhatsApp rekan secara manual.',
+                          style: TextStyle(fontSize: 11, color: onSurfaceSecondary),
+                        ),
+                      ),
+                    ],
+
+                    if (_selectedUserFeedback != null) ...[
+                      Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.green.withValues(alpha: 0.35)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.check_circle_rounded, color: Colors.green, size: 14),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                _selectedUserFeedback!,
+                                style: const TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 10),
+
+                    // Manual Inputs Row
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: TextField(
+                            controller: _memberNameController,
+                            style: TextStyle(color: onSurface, fontSize: 13),
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              labelText: 'Nama Rekan Tim',
+                              hintText: 'Budi Santoso',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 3,
+                          child: TextField(
+                            controller: _memberPhoneController,
+                            keyboardType: TextInputType.phone,
+                            style: TextStyle(color: onSurface, fontSize: 13),
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              labelText: 'Nomor WA (08xxx)',
+                              hintText: '08123456789',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: ElevatedButton.icon(
+                        onPressed: _addMemberToList,
+                        icon: const Icon(Icons.person_add_rounded, size: 14, color: Colors.white),
+                        label: const Text('Tambah ke Tim', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppConstants.secondaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          minimumSize: Size.zero,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                    ),
+
+                    // List of added members
+                    if (_addedMembers.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        'Anggota Terdaftar (${_addedMembers.length}):',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: onSurface),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: _addedMembers.map((m) {
+                          return Chip(
+                            backgroundColor: Theme.of(context).cardColor,
+                            avatar: CircleAvatar(
+                              radius: 12,
+                              backgroundColor: AppConstants.primaryColor,
+                              child: Text(
+                                m.name.isNotEmpty ? m.name[0].toUpperCase() : '?',
+                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            label: Text(
+                              '${m.name}${m.phone.isNotEmpty ? ' (${m.phone})' : ''}',
+                              style: TextStyle(fontSize: 11, color: onSurface, fontWeight: FontWeight.w500),
+                            ),
+                            deleteIcon: const Icon(Icons.close_rounded, size: 14),
+                            onDeleted: () {
+                              setState(() => _addedMembers.removeWhere((item) => item.id == m.id));
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+
             const SizedBox(height: 16),
 
             // Save Button
@@ -368,9 +738,14 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
               onPressed: _saveTask,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppConstants.primaryColor,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Simpan Tugas'),
+              child: const Text(
+                'Simpan Tugas',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+              ),
             ),
           ],
         ),

@@ -6,6 +6,7 @@ import '../core/constants.dart';
 import '../core/priority_calculator.dart';
 import '../models/subtask_model.dart';
 import '../models/task_model.dart';
+import '../models/user_profile_model.dart';
 import '../providers/task_provider.dart';
 import '../services/whatsapp_service.dart';
 import '../widgets/confetti_overlay.dart';
@@ -108,73 +109,241 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     final titleController = TextEditingController();
     final nameController = TextEditingController();
     final phoneController = TextEditingController();
+    final searchEmailController = TextEditingController();
+    List<UserProfileModel> searchResults = [];
+    bool isSearching = false;
+    bool hasSearched = false;
+    String? selectedAccountMessage;
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Theme.of(ctx).cardColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Theme.of(ctx).dividerColor),
-        ),
-        title: Text('Tambah Subtask Baru', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface, fontWeight: FontWeight.bold)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
-                decoration: const InputDecoration(
-                  labelText: 'Deskripsi Subtask',
-                  hintText: 'Misal: Analisis bab 2',
-                ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: Theme.of(ctx).cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Theme.of(ctx).dividerColor),
+          ),
+          title: Text('Tambah Subtask Baru', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface, fontWeight: FontWeight.bold)),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
+                    decoration: const InputDecoration(
+                      labelText: 'Deskripsi Subtask',
+                      hintText: 'Misal: Analisis bab 2',
+                    ),
+                  ),
+                  if (widget.task.isGroupTask) ...[
+                    const SizedBox(height: 14),
+
+                    // Search by email container
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(ctx).colorScheme.primary.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Theme.of(ctx).colorScheme.primary.withValues(alpha: 0.2)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.person_search_rounded, size: 16, color: Theme.of(ctx).colorScheme.primary),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Cari Akun Terdaftar (Email)',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: Theme.of(ctx).colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: searchEmailController,
+                            keyboardType: TextInputType.emailAddress,
+                            style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface, fontSize: 13),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              hintText: 'nama@kampus.ac.id',
+                              suffixIcon: isSearching
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(8),
+                                      child: SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+                                    )
+                                  : (searchEmailController.text.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(Icons.clear, size: 16),
+                                          onPressed: () {
+                                            searchEmailController.clear();
+                                            setDialogState(() {
+                                              searchResults = [];
+                                              hasSearched = false;
+                                            });
+                                          },
+                                        )
+                                      : null),
+                            ),
+                            onChanged: (val) async {
+                              final q = val.trim();
+                              if (q.length >= 2) {
+                                setDialogState(() => isSearching = true);
+                                final results = await context.read<TaskProvider>().searchUsersByEmail(q);
+                                setDialogState(() {
+                                  isSearching = false;
+                                  hasSearched = true;
+                                  searchResults = results;
+                                });
+                              } else {
+                                setDialogState(() {
+                                  searchResults = [];
+                                  hasSearched = false;
+                                });
+                              }
+                            },
+                          ),
+
+                          if (searchResults.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Container(
+                              constraints: const BoxConstraints(maxHeight: 140),
+                              decoration: BoxDecoration(
+                                color: Theme.of(ctx).cardColor,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Theme.of(ctx).dividerColor),
+                              ),
+                              child: ListView.separated(
+                                shrinkWrap: true,
+                                itemCount: searchResults.length,
+                                separatorBuilder: (context, index) => const Divider(height: 1),
+                                itemBuilder: (ctx, i) {
+                                  final u = searchResults[i];
+                                  final phoneDisplay = u.phone.isNotEmpty ? u.phone : 'Belum ada WA';
+                                  return ListTile(
+                                    dense: true,
+                                    visualDensity: VisualDensity.compact,
+                                    leading: CircleAvatar(
+                                      radius: 12,
+                                      backgroundColor: Color(u.avatarColor),
+                                      child: Text(
+                                        u.fullName.isNotEmpty ? u.fullName[0].toUpperCase() : '?',
+                                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    title: Text(u.fullName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                    subtitle: Text('${u.email} • 📱 $phoneDisplay', style: const TextStyle(fontSize: 10)),
+                                    trailing: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppConstants.primaryColor,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        minimumSize: Size.zero,
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                      onPressed: () {
+                                        setDialogState(() {
+                                          nameController.text = u.fullName;
+                                          phoneController.text = u.phone;
+                                          selectedAccountMessage = 'Akun "${u.fullName}" dipilih!';
+                                          searchResults = [];
+                                          hasSearched = false;
+                                        });
+                                      },
+                                      child: const Text('Pilih', style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+
+                          if (hasSearched && searchResults.isEmpty && !isSearching) ...[
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                'ℹ️ Email akun belum ditemukan. Anda dapat mengisi nama dan nomor WA secara manual.',
+                                style: TextStyle(fontSize: 10, color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.7)),
+                              ),
+                            ),
+                          ],
+
+                          if (selectedAccountMessage != null) ...[
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                '✅ $selectedAccountMessage Data nama & WA terisi.',
+                                style: const TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: nameController,
+                      style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
+                      decoration: const InputDecoration(
+                        labelText: 'Nama Anggota Penanggung Jawab',
+                        hintText: 'Nama rekan tim',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: phoneController,
+                      keyboardType: TextInputType.phone,
+                      style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
+                      decoration: const InputDecoration(
+                        labelText: 'Nomor WhatsApp (08xxx)',
+                        hintText: '08123456789',
+                      ),
+                    ),
+                  ],
+                ],
               ),
-              if (widget.task.isGroupTask) ...[
-                const SizedBox(height: 12),
-                TextField(
-                  controller: nameController,
-                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
-                  decoration: const InputDecoration(
-                    labelText: 'Nama Anggota Penanggung Jawab',
-                    hintText: 'Nama rekan tim',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: phoneController,
-                  keyboardType: TextInputType.phone,
-                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
-                  decoration: const InputDecoration(
-                    labelText: 'Nomor WhatsApp (08xxx)',
-                    hintText: '08123456789',
-                  ),
-                ),
-              ],
-            ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('Batal', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65))),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final title = titleController.text.trim();
+                if (title.isNotEmpty) {
+                  final provider = context.read<TaskProvider>();
+                  final newSub = SubtaskModel(
+                    id: '',
+                    taskId: widget.task.id,
+                    title: title,
+                    assignedToName: nameController.text.trim().isNotEmpty ? nameController.text.trim() : null,
+                    assignedToPhone: phoneController.text.trim().isNotEmpty ? phoneController.text.trim() : null,
+                  );
+                  await provider.addSubtask(newSub);
+                  if (ctx.mounted) Navigator.pop(ctx);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppConstants.primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Tambah', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Batal', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65)))),
-          ElevatedButton(
-            onPressed: () async {
-              final title = titleController.text.trim();
-              if (title.isNotEmpty) {
-                final provider = context.read<TaskProvider>();
-                final newSub = SubtaskModel(
-                  id: '',
-                  taskId: widget.task.id,
-                  title: title,
-                  assignedToName: nameController.text.trim().isNotEmpty ? nameController.text.trim() : null,
-                  assignedToPhone: phoneController.text.trim().isNotEmpty ? phoneController.text.trim() : null,
-                );
-                await provider.addSubtask(newSub);
-                if (ctx.mounted) Navigator.pop(ctx);
-              }
-            },
-            child: const Text('Tambah'),
-          ),
-        ],
       ),
     );
   }
@@ -376,11 +545,16 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                 height: 16,
                                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                               )
-                            : const Icon(Icons.auto_awesome, size: 16),
-                        label: Text(_isBreakingDown ? 'Memecah...' : 'Pecah Tugas ✨'),
+                            : const Icon(Icons.auto_awesome, size: 16, color: Colors.white),
+                        label: Text(
+                          _isBreakingDown ? 'Memecah...' : 'Pecah Tugas ✨',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppConstants.primaryColor,
+                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     ),
@@ -533,11 +707,16 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         );
                       }
                     },
-                    icon: const Icon(Icons.check_circle_rounded, color: Colors.black87),
-                    label: const Text('Tandai Seluruh Tugas Selesai 🎉', style: TextStyle(color: Colors.black87)),
+                    icon: const Icon(Icons.check_circle_rounded, color: Colors.white),
+                    label: const Text(
+                      'Tandai Seluruh Tugas Selesai 🎉',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppConstants.successColor,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                 ],
