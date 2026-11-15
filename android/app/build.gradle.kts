@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.tugasku.app.tugasku"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
