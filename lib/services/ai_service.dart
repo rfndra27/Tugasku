@@ -111,7 +111,8 @@ Format JSON yang wajib dihasilkan:
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
-          final content = data['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '';
+          final parts = data['candidates']?[0]?['content']?['parts'] as List? ?? [];
+          final content = parts.map((p) => p['text']?.toString() ?? '').where((t) => t.isNotEmpty).join('\n');
           final cleanJson = content.trim().replaceAll('```json', '').replaceAll('```', '');
           final parsed = jsonDecode(cleanJson);
 
@@ -288,7 +289,8 @@ Keluarkan HANYA JSON array tanpa markdown:
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
-          final content = data['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '';
+          final parts = data['candidates']?[0]?['content']?['parts'] as List? ?? [];
+          final content = parts.map((p) => p['text']?.toString() ?? '').where((t) => t.isNotEmpty).join('\n');
           final cleanJson = content.trim().replaceAll('```json', '').replaceAll('```', '');
           final List list = jsonDecode(cleanJson);
 
@@ -415,7 +417,8 @@ Pedoman Menjawab:
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
-          final answer = data['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '';
+          final parts = data['candidates']?[0]?['content']?['parts'] as List? ?? [];
+          final answer = parts.map((p) => p['text']?.toString() ?? '').where((t) => t.isNotEmpty).join('\n');
           return AiActionResult(success: true, data: answer);
         }
       } catch (_) {
