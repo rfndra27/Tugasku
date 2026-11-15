@@ -116,8 +116,82 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
     );
   }
 
-  void _showAddMemberDialog(GroupProjectModel project, bool isPremium) {
-    if (!isPremium && project.members.length >= AppConstants.freeMaxGroupMembers) {
+  Future<void> _confirmDeleteProject(GroupProjectModel project) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Theme.of(ctx).cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Theme.of(ctx).dividerColor),
+        ),
+        title: Text('Hapus Proyek?', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface, fontWeight: FontWeight.bold)),
+        content: Text(
+          'Proyek "${project.title}" beserta semua anggota, deliverable, dan riwayat aktivitasnya akan dihapus permanen.',
+          style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.7)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Batal', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65))),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppConstants.errorColor),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await context.read<TaskProvider>().deleteGroupProject(project.id);
+    }
+  }
+
+  Future<void> _confirmDeleteMember(GroupProjectModel project, GroupMemberModel member) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Theme.of(ctx).cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Theme.of(ctx).dividerColor),
+        ),
+        title: Text('Hapus Anggota?', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface, fontWeight: FontWeight.bold)),
+        content: Text(
+          '${member.name} akan dihapus dari proyek "${project.title}".',
+          style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.7)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Batal', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65))),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppConstants.errorColor),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      try {
+        await context.read<TaskProvider>().deleteGroupMember(
+              projectId: project.id,
+              memberId: member.id,
+            );
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
+          );
+        }
+      }
+    }
+  }
+
+  void _showAddMemberDialog(GroupProjectModel project, bool isPremium) {    if (!isPremium && project.members.length >= AppConstants.freeMaxGroupMembers) {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -433,17 +507,30 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                                 ),
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: subContainerColor,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: borderColor),
-                              ),
-                              child: Text(
-                                'Kode: ${project.inviteCode}',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: onSurfaceSecondary),
-                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: subContainerColor,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: borderColor),
+                                  ),
+                                  child: Text(
+                                    'Kode: ${project.inviteCode}',
+                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: onSurfaceSecondary),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
+                                  tooltip: 'Hapus Proyek',
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  onPressed: () => _confirmDeleteProject(project),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -546,6 +633,16 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                       minimumSize: Size.zero,
                                     ),
+                                  ),
+                                ],
+                                if (!m.isLeader) ...[
+                                  const SizedBox(width: 6),
+                                  IconButton(
+                                    icon: const Icon(Icons.remove_circle_outline_rounded, size: 18, color: Colors.redAccent),
+                                    tooltip: 'Hapus Anggota',
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    onPressed: () => _confirmDeleteMember(project, m),
                                   ),
                                 ],
                               ],

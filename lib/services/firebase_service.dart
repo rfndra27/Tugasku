@@ -194,6 +194,7 @@ class FirebaseService {
       'phone': profile.phone,
       'bio': profile.bio,
       'avatar_color': profile.avatarColor,
+      'photo_data': profile.photoData,
     };
 
     if (docSnap.exists) {
@@ -541,6 +542,44 @@ class FirebaseService {
       'role': role,
       'joined_at': FieldValue.serverTimestamp(),
     });
+  }
+
+  Future<void> deleteGroupMember({
+    required String userId,
+    required String projectId,
+    required String memberId,
+  }) async {
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('group_projects')
+        .doc(projectId)
+        .collection('members')
+        .doc(memberId)
+        .delete();
+  }
+
+  /// Deletes a group project and all of its subcollections (members,
+  /// deliverables, activity logs).
+  Future<void> deleteGroupProject({
+    required String userId,
+    required String projectId,
+  }) async {
+    final projectRef = _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('group_projects')
+        .doc(projectId);
+
+    final batch = _firestore.batch();
+    for (final sub in const ['members', 'deliverables', 'activity_logs']) {
+      final snap = await projectRef.collection(sub).get();
+      for (final doc in snap.docs) {
+        batch.delete(doc.reference);
+      }
+    }
+    await batch.commit();
+    await projectRef.delete();
   }
 
   // ----------------------------------------------------

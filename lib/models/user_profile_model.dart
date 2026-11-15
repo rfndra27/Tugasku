@@ -12,6 +12,7 @@ class UserProfileModel {
   final String phone;
   final String bio;
   final int avatarColor;
+  final String? photoData; // base64-encoded profile picture (PNG)
   final bool isPremium;
   final DateTime? premiumExpiry;
   final int currentStreak;
@@ -31,6 +32,7 @@ class UserProfileModel {
     this.phone = '',
     this.bio = '',
     this.avatarColor = 0xFF6B8E78,
+    this.photoData,
     this.isPremium = false,
     this.premiumExpiry,
     this.currentStreak = 0,
@@ -57,6 +59,7 @@ class UserProfileModel {
     String? phone,
     String? bio,
     int? avatarColor,
+    String? photoData,
     bool? isPremium,
     DateTime? premiumExpiry,
     int? currentStreak,
@@ -76,6 +79,7 @@ class UserProfileModel {
       phone: phone ?? this.phone,
       bio: bio ?? this.bio,
       avatarColor: avatarColor ?? this.avatarColor,
+      photoData: photoData ?? this.photoData,
       isPremium: isPremium ?? this.isPremium,
       premiumExpiry: premiumExpiry ?? this.premiumExpiry,
       currentStreak: currentStreak ?? this.currentStreak,
@@ -98,6 +102,7 @@ class UserProfileModel {
       'phone': phone,
       'bio': bio,
       'avatar_color': avatarColor,
+      'photo_data': photoData,
       'is_premium': isPremium,
       'premium_expiry': premiumExpiry != null ? Timestamp.fromDate(premiumExpiry!) : null,
       'current_streak': currentStreak,
@@ -128,6 +133,7 @@ class UserProfileModel {
       phone: json['phone']?.toString() ?? '',
       bio: json['bio']?.toString() ?? '',
       avatarColor: (json['avatar_color'] is num) ? (json['avatar_color'] as num).toInt() : 0xFF6B8E78,
+      photoData: json['photo_data']?.toString(),
       isPremium: json['is_premium'] == true,
       premiumExpiry: parseDate(json['premium_expiry']),
       currentStreak: (json['current_streak'] is num) ? (json['current_streak'] as num).toInt() : 0,

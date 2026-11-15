@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../core/image_picker_service.dart';
 import '../providers/task_provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -23,6 +24,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late final TextEditingController _bioController;
 
   int _selectedAvatarColor = 0xFF6B8E78;
+  String? _photoData;
   bool _isSaving = false;
 
   static const List<int> _avatarColors = [
@@ -50,6 +52,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _phoneController = TextEditingController(text: profile?.phone ?? '');
     _bioController = TextEditingController(text: profile?.bio ?? '');
     _selectedAvatarColor = profile?.avatarColor ?? 0xFF6B8E78;
+    _photoData = profile?.photoData;
+  }
+
+  Future<void> _pickPhoto() async {
+    try {
+      final result = await ProfileImageService.pickAndEncodeProfileImage();
+      if (result == null) return;
+      setState(() => _photoData = result);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memilih foto: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _removePhoto() async {
+    setState(() => _photoData = null);
   }
 
   @override
@@ -78,6 +102,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             phone: _phoneController.text.trim(),
             bio: _bioController.text.trim(),
             avatarColor: _selectedAvatarColor,
+            photoData: _photoData,
           );
 
       if (mounted) {
@@ -142,21 +167,61 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 padding: const EdgeInsets.all(22),
                 child: Column(
                   children: [
-                    // Avatar Besar dengan Inisial
-                    CircleAvatar(
-                      radius: 46,
-                      backgroundColor: Color(_selectedAvatarColor),
-                      child: Text(
-                        (_nameController.text.trim().isNotEmpty
-                                ? _nameController.text.trim()[0]
-                                : (profile?.fullName.isNotEmpty == true ? profile!.fullName[0] : 'M'))
-                            .toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 34,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    // Avatar Besar dengan Foto atau Inisial
+                    GestureDetector(
+                      onTap: _pickPhoto,
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          CircleAvatar(
+                            radius: 46,
+                            backgroundColor: Color(_selectedAvatarColor),
+                            backgroundImage: ProfileImageService.decodeToProvider(_photoData),
+                            child: ProfileImageService.decodeToProvider(_photoData) == null
+                                ? Text(
+                                    ProfileImageService.initial(
+                                      _nameController.text.trim().isNotEmpty
+                                          ? _nameController.text.trim()
+                                          : profile?.fullName,
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 34,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: cardBg, width: 2),
+                            ),
+                            child: const Icon(Icons.photo_camera_rounded, size: 16, color: Colors.white),
+                          ),
+                        ],
                       ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Tombol ubah/hapus foto
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton.icon(
+                          onPressed: _pickPhoto,
+                          icon: const Icon(Icons.image_outlined, size: 18),
+                          label: Text(_photoData == null ? 'Unggah Foto' : 'Ganti Foto'),
+                        ),
+                        if (_photoData != null)
+                          TextButton.icon(
+                            onPressed: _removePhoto,
+                            icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                            label: const Text('Hapus'),
+                            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 14),
 

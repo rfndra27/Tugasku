@@ -69,6 +69,7 @@ class TaskProvider with ChangeNotifier {
     String? phone,
     String? bio,
     int? avatarColor,
+    String? photoData,
   }) async {
     final user = _firebaseService.currentUser;
     final effectiveUid = user?.uid ?? _userId ?? 'user-default';
@@ -99,6 +100,7 @@ class TaskProvider with ChangeNotifier {
       phone: phone ?? current.phone,
       bio: bio ?? current.bio,
       avatarColor: avatarColor ?? current.avatarColor,
+      photoData: photoData ?? current.photoData,
     );
 
     _profile = updatedProfile;
@@ -941,6 +943,55 @@ class TaskProvider with ChangeNotifier {
       phone: phone,
       role: role,
     );
+  }
+
+  Future<void> deleteGroupMember({
+    required String projectId,
+    required String memberId,
+  }) async {
+    if (_userId == null) return;
+    if (AppConstants.useDemoData) {
+      final index = _groupProjects.indexWhere((p) => p.id == projectId);
+      if (index >= 0) {
+        final project = _groupProjects[index];
+        final member = project.members.firstWhere(
+          (m) => m.id == memberId,
+          orElse: () => throw Exception('Anggota tidak ditemukan.'),
+        );
+        if (member.isLeader) {
+          throw Exception('Ketua kelompok tidak dapat dihapus.');
+        }
+        _groupProjects[index] = project.copyWith(
+          members: project.members.where((m) => m.id != memberId).toList(),
+        );
+        (_activityByProject[projectId] ??= []).insert(
+          0,
+          GroupActivityModel(actorName: member.name, description: 'keluar dari proyek'),
+        );
+        notifyListeners();
+      }
+      return;
+    }
+    await _firebaseService.deleteGroupMember(
+      userId: _userId!,
+      projectId: projectId,
+      memberId: memberId,
+    );
+  }
+
+  Future<void> deleteGroupProject(String projectId) async {
+    if (_userId == null) return;
+    if (AppConstants.useDemoData) {
+      _groupProjects = _groupProjects.where((p) => p.id != projectId).toList();
+      _deliverablesByProject.remove(projectId);
+      _activityByProject.remove(projectId);
+      notifyListeners();
+      return;
+    }
+    await _firebaseService.deleteGroupProject(userId: _userId!, projectId: projectId);
+    _deliverablesByProject.remove(projectId);
+    _activityByProject.remove(projectId);
+    notifyListeners();
   }
 
   // ----------------------------------------------------

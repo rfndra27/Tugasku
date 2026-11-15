@@ -2,6 +2,7 @@ import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/constants.dart';
+import '../core/image_picker_service.dart';
 import '../providers/task_provider.dart';
 import '../services/firebase_service.dart';
 import '../widgets/confetti_overlay.dart';
@@ -229,10 +230,13 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: CircleAvatar(
               radius: 15,
               backgroundColor: Color(profile?.avatarColor ?? 0xFF6B8E78),
-              child: Text(
-                (profile?.fullName.isNotEmpty == true ? profile!.fullName[0] : 'U').toUpperCase(),
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
+              backgroundImage: ProfileImageService.decodeToProvider(profile?.photoData),
+              child: ProfileImageService.decodeToProvider(profile?.photoData) == null
+                  ? Text(
+                      ProfileImageService.initial(profile?.fullName),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    )
+                  : null,
             ),
             tooltip: 'Edit profil',
             onPressed: () {
