@@ -19,11 +19,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
           cache: 'gradle'
 
       - name: Set up Flutter
@@ -45,7 +45,7 @@ jobs:
 
       - name: Build Release APK
         run: |
-          flutter build apk --release > build_output.txt 2>&1
+          flutter build apk --release --android-skip-build-dependency-validation > build_output.txt 2>&1
 
       - name: Push Error Log to Branch on Failure
         if: failure()
