@@ -44,7 +44,8 @@ jobs:
         run: flutter test
 
       - name: Build Release APK
-        run: flutter build apk --release
+        run: |
+          flutter build apk --release > build_output.txt 2>&1 || (cat build_output.txt | tail -n 120 && exit 1)
 
       - name: Prepare APK Output
         run: |
