@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
+import 'package:uuid/uuid.dart';
 import '../core/constants.dart';
 import '../core/priority_calculator.dart';
 import '../models/class_schedule_model.dart';
@@ -14,7 +15,6 @@ class FirebaseService {
   final FirebaseAuth? _customAuth;
   final FirebaseFirestore? _customFirestore;
   final FirebaseFunctions? _customFunctions;
-
   FirebaseService({
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
@@ -471,6 +471,19 @@ class FirebaseService {
     });
   }
 
+  Stream<List<GroupMemberModel>> streamGroupMembers(String userId, String projectId) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('group_projects')
+        .doc(projectId)
+        .collection('members')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => GroupMemberModel.fromFirestore(doc)).toList();
+    });
+  }
+
   Future<void> createGroupProject({
     required String userId,
     required String title,
@@ -846,6 +859,7 @@ class FirebaseService {
     String userId,
     GroupDeliverableModel deliverable, {
     required String actorName,
+    bool logActivity = true,
   }) async {
     await _firestore
         .collection('users')
@@ -856,17 +870,19 @@ class FirebaseService {
         .doc(deliverable.id)
         .update(deliverable.copyWith(id: deliverable.id).toJson());
 
-    await _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('group_projects')
-        .doc(deliverable.projectId)
-        .collection('activity_logs')
-        .add({
-      'actor_name': actorName,
-      'description': 'memperbarui ${deliverable.title} menjadi ${deliverable.progressPercent}%',
-      'created_at': FieldValue.serverTimestamp(),
-    });
+    if (logActivity) {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('group_projects')
+          .doc(deliverable.projectId)
+          .collection('activity_logs')
+          .add({
+        'actor_name': actorName,
+        'description': 'memperbarui ${deliverable.title} menjadi ${deliverable.progressPercent}%',
+        'created_at': FieldValue.serverTimestamp(),
+      });
+    }
   }
 
   Future<void> deleteGroupDeliverable(String userId, String projectId, String deliverableId) async {
@@ -1021,7 +1037,7 @@ class FirebaseService {
       'user_id': userId,
       'title': 'TugasKu - Project Charter Kelompok 6',
       'course_name': 'Kewirausahaan (BM - 5A)',
-      'invite_code': 'GRP-${DateTime.now().millisecondsSinceEpoch % 10000}',
+      'invite_code': 'GRP-${const Uuid().v4().substring(0, 6).toUpperCase()}',
       'created_at': FieldValue.serverTimestamp(),
     });
 
@@ -1029,17 +1045,20 @@ class FirebaseService {
       {
         'name': 'Mochmad Remano Darusatwiko',
         'phone': '+628123456789',
-        'role': 'Project Manager & Front-End Developer (2403421006)',
+        'role': 'leader',
+        'role_label': 'Project Manager & Front-End Developer (2403421006)',
       },
       {
         'name': 'Muhammad Novansya',
         'phone': '+628123456780',
-        'role': 'Back-End Developer & Database Engineer (2403421033)',
+        'role': 'member',
+        'role_label': 'Back-End Developer & Database Engineer (2403421033)',
       },
       {
         'name': 'Riviera Rafa Andara',
         'phone': '+628123456781',
-        'role': 'AI & Integration Specialist (2403421022)',
+        'role': 'member',
+        'role_label': 'AI & Integration Specialist (2403421022)',
       },
     ];
 

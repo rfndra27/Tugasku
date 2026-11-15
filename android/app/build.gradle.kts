@@ -27,9 +27,18 @@ android {
         multiDexEnabled = true
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("tugasku-release.keystore")
+            storePassword = "tugasku123"
+            keyAlias = "tugaskukey"
+            keyPassword = "tugasku123"
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

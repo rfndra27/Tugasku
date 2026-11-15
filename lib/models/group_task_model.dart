@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
 
 class GroupMemberModel {
   final String id;
@@ -6,6 +7,7 @@ class GroupMemberModel {
   final String name;
   final String phone;
   final String role;
+  final String roleLabel;
   final DateTime joinedAt;
 
   GroupMemberModel({
@@ -14,6 +16,7 @@ class GroupMemberModel {
     required this.name,
     required this.phone,
     this.role = 'member',
+    this.roleLabel = '',
     DateTime? joinedAt,
   }) : joinedAt = joinedAt ?? DateTime.now();
 
@@ -25,6 +28,7 @@ class GroupMemberModel {
     String? name,
     String? phone,
     String? role,
+    String? roleLabel,
     DateTime? joinedAt,
   }) {
     return GroupMemberModel(
@@ -33,6 +37,7 @@ class GroupMemberModel {
       name: name ?? this.name,
       phone: phone ?? this.phone,
       role: role ?? this.role,
+      roleLabel: roleLabel ?? this.roleLabel,
       joinedAt: joinedAt ?? this.joinedAt,
     );
   }
@@ -43,6 +48,7 @@ class GroupMemberModel {
         'name': name,
         'phone': phone,
         'role': role,
+        'role_label': roleLabel,
         'joined_at': Timestamp.fromDate(joinedAt),
       };
 
@@ -59,6 +65,7 @@ class GroupMemberModel {
       name: json['name']?.toString() ?? 'Anggota',
       phone: json['phone']?.toString() ?? '',
       role: json['role']?.toString() ?? 'member',
+      roleLabel: json['role_label']?.toString() ?? '',
       joinedAt: joinedAt,
     );
   }
@@ -91,6 +98,12 @@ class GroupProjectModel {
   }) : createdAt = createdAt ?? DateTime.now();
 
   int get memberCount => members.length;
+
+  /// Generates a short, collision-resistant invite code such as "GRP-8F2A9C".
+  static String generateInviteCode() {
+    final uuid = Uuid().v4().replaceAll('-', '').toUpperCase();
+    return 'GRP-${uuid.substring(0, 6)}';
+  }
 
   GroupProjectModel copyWith({
     String? id,

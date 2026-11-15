@@ -98,7 +98,7 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
 
               if (title.isNotEmpty && leaderName.isNotEmpty) {
                 final provider = context.read<TaskProvider>();
-                final code = 'GRP-${DateTime.now().millisecondsSinceEpoch % 10000}';
+                final code = GroupProjectModel.generateInviteCode();
                 await provider.createGroupProject(
                   title: title,
                   courseName: course.isNotEmpty ? course : 'Mata Kuliah',
@@ -277,7 +277,8 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                     decoration: const InputDecoration(labelText: 'Pilih PIC Anggota'),
                     dropdownColor: Theme.of(ctx).cardColor,
                     items: project.members.map((m) {
-                      return DropdownMenuItem(value: m.name, child: Text('${m.name} (${m.role})'));
+                      final label = m.roleLabel.isNotEmpty ? m.roleLabel : (m.isLeader ? 'Ketua' : 'Anggota');
+                      return DropdownMenuItem(value: m.name, child: Text('${m.name} ($label)'));
                     }).toList(),
                     onChanged: (val) {
                       if (val != null) {
@@ -500,7 +501,7 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: onSurface),
                                       ),
                                       Text(
-                                        '${m.role == 'leader' ? '👑 Ketua' : 'Anggota'} • ${m.phone}',
+                                        '${m.isLeader ? '👑 Ketua' : 'Anggota'} • ${m.phone}',
                                         style: TextStyle(fontSize: 11, color: onSurfaceSecondary),
                                       ),
                                     ],
@@ -510,10 +511,21 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                                   ElevatedButton.icon(
                                     onPressed: () async {
                                       try {
+                                        // Find deliverables owned by this member to
+                                        // craft a relevant reminder instead of a
+                                        // hardcoded generic message.
+                                        final owned = provider
+                                            .deliverablesFor(project.id)
+                                            .where((d) => d.ownerName == m.name || d.ownerPhone == m.phone)
+                                            .map((d) => d.title)
+                                            .toList();
+                                        final reminderTitle = owned.isNotEmpty
+                                            ? owned.join(', ')
+                                            : 'Koordinasi tugas kelompok';
                                         await WhatsAppService.sendSubtaskReminder(
                                           memberName: m.name,
                                           rawPhoneNumber: m.phone,
-                                          subtaskTitle: 'Koordinasi tugas kelompok',
+                                          subtaskTitle: reminderTitle,
                                           courseName: project.courseName,
                                         );
                                       } catch (e) {
@@ -656,39 +668,10 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            activeTrackColor: AppConstants.primaryColor,
-                            inactiveTrackColor: isDark ? AppConstants.elevatedSurfaceColor : const Color(0xFFCBD5E1),
-                            thumbColor: AppConstants.primaryColor,
-                          ),
-                          child: Slider(
-                            value: deliverable.progressPercent.toDouble(),
-                            min: 0,
-                            max: 100,
-                            divisions: 20,
-                            label: '${deliverable.progressPercent}%',
-                            onChanged: (value) {
-                              final percent = value.round();
-                              provider.updateDeliverable(
-                                deliverable.copyWith(
-                                  progressPercent: percent,
-                                  status: percent == 100
-                                      ? DeliverableStatus.completed
-                                      : percent == 0
-                                          ? DeliverableStatus.pending
-                                          : DeliverableStatus.inProgress,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                      Text('${deliverable.progressPercent}%', style: TextStyle(fontWeight: FontWeight.bold, color: onSurface)),
-                    ],
+                  _DeliverableProgressSlider(
+                    deliverable: deliverable,
+                    project: project,
+                    provider: provider,
                   ),
                   Row(
                     children: [
@@ -713,6 +696,90 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                 title: Text('${activity.actorName} ${activity.description}', style: TextStyle(fontSize: 12, color: onSurfaceSecondary)),
               )),
         ],
+      ],
+    );
+  }
+}
+
+/// Local-state progress slider that updates the UI live but persists to the
+/// provider (and Firestore) only once, when the user releases the thumb.
+class _DeliverableProgressSlider extends StatefulWidget {
+  final GroupDeliverableModel deliverable;
+  final GroupProjectModel project;
+  final TaskProvider provider;
+
+  const _DeliverableProgressSlider({
+    required this.deliverable,
+    required this.project,
+    required this.provider,
+  });
+
+  @override
+  State<_DeliverableProgressSlider> createState() => _DeliverableProgressSliderState();
+}
+
+class _DeliverableProgressSliderState extends State<_DeliverableProgressSlider> {
+  late double _currentValue;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentValue = widget.deliverable.progressPercent.toDouble();
+  }
+
+  @override
+  void didUpdateWidget(covariant _DeliverableProgressSlider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.deliverable.progressPercent != widget.deliverable.progressPercent) {
+      _currentValue = widget.deliverable.progressPercent.toDouble();
+    }
+  }
+
+  void _commit(int percent) {
+    widget.provider.updateDeliverable(
+      widget.deliverable.copyWith(
+        progressPercent: percent,
+        status: percent == 100
+            ? DeliverableStatus.completed
+            : percent == 0
+                ? DeliverableStatus.pending
+                : DeliverableStatus.inProgress,
+      ),
+      logActivity: true,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = isDark ? Colors.white : const Color(0xFF0F172A);
+    final percent = _currentValue.round();
+
+    return Row(
+      children: [
+        Expanded(
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: AppConstants.primaryColor,
+              inactiveTrackColor: isDark ? AppConstants.elevatedSurfaceColor : const Color(0xFFCBD5E1),
+              thumbColor: AppConstants.primaryColor,
+            ),
+            child: Slider(
+              value: _currentValue,
+              min: 0,
+              max: 100,
+              divisions: 20,
+              label: '$percent%',
+              onChanged: (value) {
+                setState(() => _currentValue = value);
+              },
+              onChangeEnd: (value) {
+                _commit(value.round());
+              },
+            ),
+          ),
+        ),
+        Text('$percent%', style: TextStyle(fontWeight: FontWeight.bold, color: onSurface)),
       ],
     );
   }

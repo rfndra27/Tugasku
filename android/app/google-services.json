@@ -12,7 +12,20 @@
           "package_name": "com.tugasku.app.tugasku"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "661282330868-1ac44h25qmdojk4u6nbo32ug5fmsd876.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tugasku.app.tugasku",
+            "certificate_hash": "b84ddd93ee0210ea454ceb12d8b9f557f90595c3"
+          }
+        },
+        {
+          "client_id": "661282330868-5l4p216s6p5953sgl7cui7lkn3q5ujjd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBI3dIfbFvF7pvQooqPtWZomfOMkp5Jn6w"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "661282330868-5l4p216s6p5953sgl7cui7lkn3q5ujjd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

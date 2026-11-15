@@ -54,6 +54,7 @@ class TaskProvider with ChangeNotifier {
   StreamSubscription? _agendasSub;
   final List<StreamSubscription> _deliverablesSubs = [];
   final List<StreamSubscription> _activitySubs = [];
+  final List<StreamSubscription> _membersSubs = [];
 
   // Getters
   String? get userId => _userId;
@@ -232,8 +233,12 @@ class TaskProvider with ChangeNotifier {
         sub.cancel();
       }
       _activitySubs.clear();
+      for (final sub in _membersSubs) {
+        sub.cancel();
+      }
+      _membersSubs.clear();
 
-      // Load deliverables and activities for each project
+      // Load deliverables, activities and members for each project
       for (final project in groups) {
         final dSub = _firebaseService.streamGroupDeliverables(userId, project.id).listen((deliverables) {
           _deliverablesByProject[project.id] = deliverables;
@@ -246,6 +251,15 @@ class TaskProvider with ChangeNotifier {
           notifyListeners();
         });
         _activitySubs.add(aSub);
+
+        final mSub = _firebaseService.streamGroupMembers(userId, project.id).listen((members) {
+          final index = _groupProjects.indexWhere((p) => p.id == project.id);
+          if (index >= 0) {
+            _groupProjects[index] = _groupProjects[index].copyWith(members: members);
+            notifyListeners();
+          }
+        });
+        _membersSubs.add(mSub);
       }
       notifyListeners();
     });
@@ -545,6 +559,10 @@ class TaskProvider with ChangeNotifier {
       sub.cancel();
     }
     _activitySubs.clear();
+    for (final sub in _membersSubs) {
+      sub.cancel();
+    }
+    _membersSubs.clear();
   }
 
   @override
@@ -734,7 +752,7 @@ class TaskProvider with ChangeNotifier {
     await _firebaseService.addGroupDeliverable(_userId!, deliverable);
   }
 
-  Future<void> updateDeliverable(GroupDeliverableModel deliverable) async {
+  Future<void> updateDeliverable(GroupDeliverableModel deliverable, {bool logActivity = true}) async {
     final actorName = _profile?.fullName ?? 'Anggota';
     if (_userId == null) return;
     if (AppConstants.useDemoData) {
@@ -743,18 +761,25 @@ class TaskProvider with ChangeNotifier {
       if (index >= 0) {
         list[index] = deliverable;
         _deliverablesByProject[deliverable.projectId] = list;
-        (_activityByProject[deliverable.projectId] ??= []).insert(
-          0,
-          GroupActivityModel(
-            actorName: actorName,
-            description: 'memperbarui ${deliverable.title} menjadi ${deliverable.progressPercent}%',
-          ),
-        );
+        if (logActivity) {
+          (_activityByProject[deliverable.projectId] ??= []).insert(
+            0,
+            GroupActivityModel(
+              actorName: actorName,
+              description: 'memperbarui ${deliverable.title} menjadi ${deliverable.progressPercent}%',
+            ),
+          );
+        }
         notifyListeners();
       }
       return;
     }
-    await _firebaseService.updateGroupDeliverable(_userId!, deliverable, actorName: actorName);
+    await _firebaseService.updateGroupDeliverable(
+      _userId!,
+      deliverable,
+      actorName: actorName,
+      logActivity: logActivity,
+    );
   }
 
   Future<void> deleteDeliverable(String projectId, String deliverableId) async {
@@ -872,7 +897,11 @@ class TaskProvider with ChangeNotifier {
     if (_userId == null) return;
 
     // Check member quota for free users
-    final currentProject = _groupProjects.firstWhere((p) => p.id == projectId);
+    final currentProjectIndex = _groupProjects.indexWhere((p) => p.id == projectId);
+    if (currentProjectIndex < 0) {
+      throw Exception('Proyek kelompok tidak ditemukan.');
+    }
+    final currentProject = _groupProjects[currentProjectIndex];
     final isPremium = _profile?.isPremium ?? false;
 
     if (!isPremium && currentProject.members.length >= AppConstants.freeMaxGroupMembers) {
