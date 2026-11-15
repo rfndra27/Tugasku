@@ -104,57 +104,28 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Emblem / Logo: Shield container with book & check badge
+                    // Official App Logo
                     Container(
-                      width: 96,
-                      height: 96,
+                      width: 108,
+                      height: 108,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            const Color(0xFF7C3AED).withValues(alpha: 0.25),
-                            const Color(0xFF2563EB).withValues(alpha: 0.15),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(28),
-                        border: Border.all(
-                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.40),
-                          width: 1.5,
-                        ),
+                        borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF7C3AED).withValues(alpha: 0.25),
-                            blurRadius: 30,
-                            spreadRadius: 2,
+                            color: const Color(0xFF2563EB).withValues(alpha: 0.35),
+                            blurRadius: 32,
+                            spreadRadius: 4,
                           ),
                         ],
                       ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          const Icon(
-                            Icons.menu_book_rounded,
-                            size: 50,
-                            color: Color(0xFF8B5CF6),
-                          ),
-                          Positioned(
-                            right: 18,
-                            bottom: 18,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFFF59E0B),
-                              ),
-                              child: const Icon(
-                                Icons.check_rounded,
-                                size: 16,
-                                color: Color(0xFF0F0F12),
-                              ),
-                            ),
-                          ),
-                        ],
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          width: 108,
+                          height: 108,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),

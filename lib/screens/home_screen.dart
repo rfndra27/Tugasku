@@ -170,18 +170,33 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(8),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  profile?.fullName.isNotEmpty == true ? 'Halo, ${profile!.fullName.split(" ").first} 👋' : 'TugasKu',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 32,
+                    height: 32,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-                Text(
-                  profile?.major.isNotEmpty == true
-                      ? '${profile!.major} • ${profile.university.isNotEmpty ? profile.university : "PNJ"}'
-                      : (profile?.university.isNotEmpty == true ? profile!.university : AppConstants.appTagline),
-                  style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.78)),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      profile?.fullName.isNotEmpty == true ? 'Halo, ${profile!.fullName.split(" ").first} 👋' : 'TugasKu',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    Text(
+                      profile?.major.isNotEmpty == true
+                          ? '${profile!.major} • ${profile.university.isNotEmpty ? profile.university : "PNJ"}'
+                          : (profile?.university.isNotEmpty == true ? profile!.university : AppConstants.appTagline),
+                      style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.78)),
+                    ),
+                  ],
                 ),
               ],
             ),
