@@ -447,8 +447,26 @@ Pedoman Menjawab:
   String buildLocalAssistantResponse(String userQuestion, List<TaskModel> activeTasks) {
     final question = userQuestion.toLowerCase();
     if (activeTasks.isEmpty) {
-      if (question.contains('hari ini') || question.contains('mendesak')) {
+      if (question.contains('hari ini') ||
+          question.contains('sekarang') ||
+          question.contains('mendesak') ||
+          question.contains('prioritas')) {
         return 'Hari ini belum ada tugas aktif yang tercatat. Kamu bisa memakai waktu ini untuk mengecek pengumuman kelas atau menyiapkan tugas berikutnya. 🚀';
+      }
+      if (question.contains('tips') ||
+          question.contains('waktu') ||
+          question.contains('minggu')) {
+        return 'Karena belum ada tugas aktif, gunakan minggu ini untuk merapikan catatan, mengecek kalender kuliah, dan menyiapkan daftar target belajar. Sisihkan 25 menit per sesi agar tetap konsisten. 📚';
+      }
+      if (question.contains('cicil') ||
+          question.contains('pecah') ||
+          question.contains('mulai')) {
+        return 'Belum ada tugas aktif yang bisa dicicil. Coba tambahkan tugas dari halaman Tugas, lalu aku bantu memecahnya menjadi langkah-langkah kecil. ✅';
+      }
+      if (question.contains('hai') ||
+          question.contains('halo') ||
+          question.contains('apa kabar')) {
+        return 'Hai! Aku siap membantu mengatur tugasmu. Saat ini belum ada tugas aktif yang terbaca. 👋';
       }
       return 'Keren banget! Saat ini kamu tidak memiliki tugas aktif yang menumpuk. Nikmati waktu istirahatmu atau mulai pelajari materi perkuliahan berikutnya! 🚀';
     }
