@@ -180,6 +180,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               controller: resetEmailController,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
+                filled: true,
+                fillColor: const Color(0xFFF9FAFB),
                 labelText: 'Email Address',
                 hintText: 'nama@kampus.ac.id',
                 prefixIcon: const Icon(Icons.mail_outline_rounded, color: Color(0xFF6B8E78)),
@@ -248,6 +250,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               controller: codeController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
+                filled: true,
+                fillColor: Color(0xFFF9FAFB),
                 labelText: 'Kode OTP',
                 hintText: '123456',
                 border: OutlineInputBorder(),
@@ -312,6 +316,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 controller: phoneController,
                 keyboardType: TextInputType.phone,
                 decoration: const InputDecoration(
+                  filled: true,
+                  fillColor: Color(0xFFF9FAFB),
                   labelText: 'Nomor Telepon',
                   hintText: '081234567890 atau +628123456789',
                   border: OutlineInputBorder(),
@@ -932,10 +938,12 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   ),
                   decoration: InputDecoration(
                     isDense: true,
+                    filled: false,
+                    fillColor: Colors.transparent,
                     hintText: hintText,
                     hintStyle: const TextStyle(
                       fontSize: 13,
-                      color: Color(0xFFD1D5DB),
+                      color: Color(0xFF9CA3AF),
                       fontWeight: FontWeight.normal,
                     ),
                     contentPadding: EdgeInsets.zero,
