@@ -45,7 +45,18 @@ jobs:
 
       - name: Build Release APK
         run: |
-          flutter build apk --release > build_output.txt 2>&1 || (cat build_output.txt | tail -n 120 && exit 1)
+          flutter build apk --release > build_output.txt 2>&1
+
+      - name: Push Error Log to Branch on Failure
+        if: failure()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git checkout -B build-log
+          tail -n 300 build_output.txt > error_log.txt
+          git add -f error_log.txt
+          git commit -m "chore: record build error log"
+          git push -f origin build-log
 
       - name: Prepare APK Output
         run: |
