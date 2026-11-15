@@ -85,17 +85,17 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
         backgroundColor: Theme.of(ctx).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppConstants.borderSubtleColor),
+          side: BorderSide(color: Theme.of(ctx).dividerColor),
         ),
-        title: const Text('👑 Kuota AI Habis', style: TextStyle(color: AppConstants.textPrimaryColor)),
+        title: Text('👑 Kuota AI Habis', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface, fontWeight: FontWeight.bold)),
         content: Text(
           '$message\n\nUpgrade ke TugasKu Premium hanya Rp10.000/bulan untuk menikmati input AI tanpa batas!',
-          style: const TextStyle(color: AppConstants.textSecondaryColor),
+          style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Nanti Saja', style: TextStyle(color: AppConstants.textSecondaryColor)),
+            child: Text('Nanti Saja', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65))),
           ),
           ElevatedButton(
             onPressed: () {
@@ -172,7 +172,7 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Theme.of(context).cardColor,
-          content: Text('Tugas berhasil disimpan & pengingat telah dijadwalkan!', style: TextStyle(color: AppConstants.textPrimaryColor)),
+          content: Text('Tugas berhasil disimpan & pengingat telah dijadwalkan!', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         ),
       );
     }
@@ -180,10 +180,16 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final onSurfaceSecondary = onSurface.withValues(alpha: 0.65);
+    final borderColor = Theme.of(context).dividerColor;
+    final inputBg = isDark ? AppConstants.inputColor : const Color(0xFFF1F5F9);
+
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.only(
         top: 20,
@@ -202,7 +208,7 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppConstants.borderSubtleColor,
+                  color: borderColor,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -211,18 +217,18 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
 
             // Header
             Row(
-              children: const [
+              children: [
                 Text(
                   '✨ Input Pintar AI',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppConstants.textPrimaryColor),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: onSurface),
                 ),
-                Spacer(),
-                CloseButton(color: AppConstants.textSecondaryColor),
+                const Spacer(),
+                CloseButton(color: onSurfaceSecondary),
               ],
             ),
-            const Text(
+            Text(
               'Tempel pesan dosen atau chat grup WhatsApp, AI akan mengekstrak judul, deadline, dan bobot nilai secara otomatis.',
-              style: TextStyle(fontSize: 12, color: AppConstants.textSecondaryColor),
+              style: TextStyle(fontSize: 12, color: onSurfaceSecondary),
             ),
             const SizedBox(height: 16),
 
@@ -230,7 +236,7 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
             TextField(
               controller: _rawTextController,
               maxLines: 3,
-              style: const TextStyle(color: AppConstants.textPrimaryColor),
+              style: TextStyle(color: onSurface),
               decoration: const InputDecoration(
                 hintText: 'Contoh: "Kumpul laporan praktikum fisika Jumat jam 10 malam ya, bobot nilai 20%"',
                 labelText: 'Pesan Dosen / Chat Grup WA',
@@ -266,15 +272,15 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
             const Divider(height: 32),
 
             // Extracted / Manual Form Fields
-            const Text(
+            Text(
               'Detail Tugas:',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: onSurface),
             ),
             const SizedBox(height: 12),
 
             TextField(
               controller: _titleController,
-              style: const TextStyle(color: AppConstants.textPrimaryColor),
+              style: TextStyle(color: onSurface),
               decoration: const InputDecoration(
                 labelText: 'Judul Tugas',
                 hintText: 'Contoh: Laporan Akhir Praktikum',
@@ -288,7 +294,7 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
                   flex: 3,
                   child: TextField(
                     controller: _courseController,
-                    style: const TextStyle(color: AppConstants.textPrimaryColor),
+                    style: TextStyle(color: onSurface),
                     decoration: const InputDecoration(
                       labelText: 'Mata Kuliah',
                       hintText: 'Fisika Dasar',
@@ -301,7 +307,7 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
                   child: TextField(
                     controller: _weightController,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(color: AppConstants.textPrimaryColor),
+                    style: TextStyle(color: onSurface),
                     decoration: const InputDecoration(
                       labelText: 'Bobot (%)',
                       hintText: '10',
@@ -319,8 +325,8 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: AppConstants.inputColor,
-                  border: Border.all(color: AppConstants.borderSubtleColor),
+                  color: inputBg,
+                  border: Border.all(color: borderColor),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -330,10 +336,10 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Tenggat Waktu (Deadline):', style: TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor)),
+                        Text('Tenggat Waktu (Deadline):', style: TextStyle(fontSize: 11, color: onSurfaceSecondary)),
                         Text(
                           DateFormat('EEEE, d MMMM yyyy HH:mm', 'id_ID').format(_selectedDeadline),
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor),
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: onSurface),
                         ),
                       ],
                     ),
@@ -349,8 +355,8 @@ class _SmartTaskInputDialogState extends State<SmartTaskInputDialog> {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               activeThumbColor: AppConstants.primaryColor,
-              title: const Text('Ini adalah Tugas Kelompok', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppConstants.textPrimaryColor)),
-              subtitle: const Text('Dapat dibagi menjadi subtask per anggota dengan pengingat WA', style: TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor)),
+              title: Text('Ini adalah Tugas Kelompok', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: onSurface)),
+              subtitle: Text('Dapat dibagi menjadi subtask per anggota dengan pengingat WA', style: TextStyle(fontSize: 11, color: onSurfaceSecondary)),
               value: _isGroupTask,
               onChanged: (val) => setState(() => _isGroupTask = val),
             ),

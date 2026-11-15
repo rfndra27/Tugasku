@@ -95,17 +95,23 @@ class _ElearningSyncDialogState extends State<ElearningSyncDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final onSurfaceSecondary = onSurface.withValues(alpha: 0.65);
+    final borderColor = Theme.of(context).dividerColor;
+    final infoBg = isDark ? AppConstants.inputColor : const Color(0xFFF1F5F9);
+
     return AlertDialog(
       backgroundColor: Theme.of(context).cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: AppConstants.borderSubtleColor),
+        side: BorderSide(color: borderColor),
       ),
       title: Row(
-        children: const [
-          Icon(Icons.sync_rounded, color: AppConstants.primaryColor),
-          SizedBox(width: 8),
-          Text('Sinkron E-Learning', style: TextStyle(fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor)),
+        children: [
+          const Icon(Icons.sync_rounded, color: AppConstants.primaryColor),
+          const SizedBox(width: 8),
+          Text('Sinkron E-Learning', style: TextStyle(fontWeight: FontWeight.bold, color: onSurface)),
         ],
       ),
       content: SingleChildScrollView(
@@ -113,18 +119,18 @@ class _ElearningSyncDialogState extends State<ElearningSyncDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Impor semua tugas kuliah secara otomatis dari Moodle, Canvas, atau Classroom menggunakan link kalender iCal (.ics).',
-              style: TextStyle(fontSize: 12, color: AppConstants.textSecondaryColor),
+              style: TextStyle(fontSize: 12, color: onSurfaceSecondary),
             ),
             const SizedBox(height: 16),
 
             DropdownButtonFormField<String>(
               initialValue: _selectedPlatform,
-              dropdownColor: AppConstants.cardColor,
-              style: const TextStyle(color: AppConstants.textPrimaryColor),
+              dropdownColor: Theme.of(context).cardColor,
+              style: TextStyle(color: onSurface),
               decoration: const InputDecoration(labelText: 'Platform E-Learning Kampus'),
-              items: _platforms.map((p) => DropdownMenuItem(value: p, child: Text(p, style: const TextStyle(color: AppConstants.textPrimaryColor)))).toList(),
+              items: _platforms.map((p) => DropdownMenuItem(value: p, child: Text(p, style: TextStyle(color: onSurface)))).toList(),
               onChanged: (val) {
                 if (val != null) setState(() => _selectedPlatform = val);
               },
@@ -133,11 +139,11 @@ class _ElearningSyncDialogState extends State<ElearningSyncDialog> {
 
             TextField(
               controller: _urlController,
-              style: const TextStyle(color: AppConstants.textPrimaryColor),
-              decoration: const InputDecoration(
+              style: TextStyle(color: onSurface),
+              decoration: InputDecoration(
                 labelText: 'URL Ekspor iCal (.ics)',
                 hintText: 'https://elearning.kampus.ac.id/calendar/export_execute.php?...',
-                prefixIcon: Icon(Icons.link_rounded, color: AppConstants.textSecondaryColor),
+                prefixIcon: Icon(Icons.link_rounded, color: onSurfaceSecondary),
               ),
             ),
             const SizedBox(height: 12),
@@ -155,18 +161,18 @@ class _ElearningSyncDialogState extends State<ElearningSyncDialog> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppConstants.inputColor,
+                color: infoBg,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppConstants.borderSubtleColor),
+                border: Border.all(color: borderColor),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('💡 Cara mendapatkan link iCal Moodle:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor)),
-                  SizedBox(height: 4),
+                children: [
+                  Text('💡 Cara mendapatkan link iCal Moodle:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: onSurface)),
+                  const SizedBox(height: 4),
                   Text(
                     '1. Buka Kalender di e-learning kampus.\n2. Klik tombol "Export Calendar" di bagian bawah.\n3. Pilih "All events" & "Recent and next 60 days".\n4. Klik "Get calendar URL" lalu salin ke sini.',
-                    style: TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor),
+                    style: TextStyle(fontSize: 11, color: onSurfaceSecondary),
                   ),
                 ],
               ),
@@ -177,7 +183,9 @@ class _ElearningSyncDialogState extends State<ElearningSyncDialog> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: _isSuccess ? const Color(0xFF123022) : const Color(0xFF35191D),
+                  color: _isSuccess
+                      ? (isDark ? const Color(0xFF123022) : const Color(0xFFDCFCE7))
+                      : (isDark ? const Color(0xFF35191D) : const Color(0xFFFEE2E2)),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: _isSuccess ? AppConstants.successColor.withValues(alpha: 0.5) : AppConstants.errorColor.withValues(alpha: 0.5),
@@ -196,7 +204,10 @@ class _ElearningSyncDialogState extends State<ElearningSyncDialog> {
                         _statusMessage!,
                         style: TextStyle(
                           fontSize: 11,
-                          color: _isSuccess ? const Color(0xFF8CF4AF) : const Color(0xFFFF8B8D),
+                          fontWeight: FontWeight.w600,
+                          color: _isSuccess
+                              ? (isDark ? const Color(0xFF8CF4AF) : const Color(0xFF15803D))
+                              : (isDark ? const Color(0xFFFF8B8D) : const Color(0xFFB91C1C)),
                         ),
                       ),
                     ),
@@ -208,7 +219,7 @@ class _ElearningSyncDialogState extends State<ElearningSyncDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Tutup', style: TextStyle(color: AppConstants.textSecondaryColor))),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text('Tutup', style: TextStyle(color: onSurfaceSecondary))),
         ElevatedButton(
           onPressed: _isLoading ? null : _handleSync,
           child: _isLoading

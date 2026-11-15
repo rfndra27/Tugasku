@@ -452,15 +452,15 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           const Icon(Icons.task_alt_rounded, size: 64, color: AppConstants.borderSubtleColor),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Tidak ada tugas pada kategori ini',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppConstants.textPrimaryColor),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Tekan tombol "Input Pintar AI ✨" untuk menambahkan tugas baru dari pesan dosen atau sinkronkan dengan portal e-learning kampusmu!',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: AppConstants.textSecondaryColor),
+            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65)),
           ),
           const SizedBox(height: 16),
           OutlinedButton.icon(

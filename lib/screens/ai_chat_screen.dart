@@ -118,15 +118,15 @@ class _AiChatScreenState extends State<AiChatScreen> {
         backgroundColor: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppConstants.borderSubtleColor),
+          side: BorderSide(color: Theme.of(context).dividerColor),
         ),
-        title: const Text('👑 Kuota AI Habis', style: TextStyle(color: AppConstants.textPrimaryColor)),
+        title: Text('👑 Kuota AI Habis', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
         content: Text(
           '$message\n\nUpgrade ke TugasKu Premium hanya Rp10.000/bulan untuk akses Asisten AI tanpa batas!',
-          style: const TextStyle(color: AppConstants.textSecondaryColor),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Nanti Saja', style: TextStyle(color: AppConstants.textSecondaryColor))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Nanti Saja', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)))),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
@@ -145,6 +145,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     final profile = provider.profile;
     final isPremium = profile?.isPremium ?? false;
     final remainingQuota = profile?.remainingAiQuota ?? AppConstants.freeAiMonthlyQuota;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -189,21 +190,25 @@ class _AiChatScreenState extends State<AiChatScreen> {
                     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: msg.isUser ? AppConstants.primaryColor : AppConstants.cardColor,
+                      color: msg.isUser
+                          ? AppConstants.primaryColor
+                          : (isDark ? AppConstants.cardColor : const Color(0xFFE2E8F0)),
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(16),
                         topRight: const Radius.circular(16),
                         bottomLeft: Radius.circular(msg.isUser ? 16 : 4),
                         bottomRight: Radius.circular(msg.isUser ? 4 : 16),
                       ),
-                      border: msg.isUser ? null : Border.all(color: AppConstants.borderSubtleColor),
+                      border: msg.isUser ? null : Border.all(color: Theme.of(context).dividerColor),
                     ),
                     child: Text(
                       msg.text,
                       style: TextStyle(
                         fontSize: 14,
                         height: 1.4,
-                        color: msg.isUser ? Colors.white : AppConstants.textPrimaryColor,
+                        color: msg.isUser
+                            ? Colors.white
+                            : Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -216,14 +221,17 @@ class _AiChatScreenState extends State<AiChatScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
-                children: const [
-                  SizedBox(
+                children: [
+                  const SizedBox(
                     width: 14,
                     height: 14,
                     child: CircularProgressIndicator(color: AppConstants.primaryColor, strokeWidth: 2),
                   ),
-                  SizedBox(width: 8),
-                  Text('TugasKu AI sedang berpikir...', style: TextStyle(fontSize: 12, color: AppConstants.textSecondaryColor)),
+                  const SizedBox(width: 8),
+                  Text(
+                    'TugasKu AI sedang berpikir...',
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
+                  ),
                 ],
               ),
             ),
@@ -240,9 +248,16 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ActionChip(
-                      label: Text(chipText, style: const TextStyle(fontSize: 12, color: AppConstants.textPrimaryColor)),
+                      label: Text(
+                        chipText,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
                       backgroundColor: Theme.of(context).cardColor,
-                      side: const BorderSide(color: AppConstants.borderSubtleColor),
+                      side: BorderSide(color: Theme.of(context).dividerColor),
                       onPressed: () => _sendMessage(chipText),
                     ),
                   );
@@ -265,10 +280,13 @@ class _AiChatScreenState extends State<AiChatScreen> {
                 Expanded(
                   child: TextField(
                     controller: _textController,
-                    style: const TextStyle(color: AppConstants.textPrimaryColor),
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    decoration: InputDecoration(
                       hintText: 'Tanya tugas atau minta saran prioritas...',
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      hintStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
                     onSubmitted: _sendMessage,
                   ),

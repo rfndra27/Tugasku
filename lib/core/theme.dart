@@ -181,9 +181,11 @@ class AppTheme {
         primary: AppConstants.secondaryColor,
         secondary: AppConstants.primaryColor,
         surface: Colors.white,
+        onSurface: const Color(0xFF17324D),
         error: AppConstants.errorColor,
       ),
       scaffoldBackgroundColor: const Color(0xFFF4F7FC),
+      dividerColor: const Color(0xFFE2E8F0),
     );
 
     return baseLight.copyWith(
@@ -204,7 +206,34 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: Colors.white,
         elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: Colors.white,
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+        ),
+        titleTextStyle: GoogleFonts.plusJakartaSans(
+          color: const Color(0xFF17324D),
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+        contentTextStyle: GoogleFonts.plusJakartaSans(
+          color: const Color(0xFF64748B),
+          fontSize: 14,
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Colors.white,
+        modalBackgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.white,
@@ -225,6 +254,46 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppConstants.primaryColor, width: 1.5),
         ),
+        labelStyle: GoogleFonts.plusJakartaSans(
+          color: const Color(0xFF64748B),
+          fontSize: 13,
+        ),
+        hintStyle: GoogleFonts.plusJakartaSans(
+          color: const Color(0xFF94A3B8),
+          fontSize: 14,
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: Colors.white,
+        disabledColor: const Color(0xFFF1F5F9),
+        selectedColor: AppConstants.primaryColor.withValues(alpha: 0.15),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        side: const BorderSide(color: Color(0xFFD8E4F2)),
+        labelStyle: GoogleFonts.plusJakartaSans(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: const Color(0xFF17324D),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: const Color(0xFF17324D),
+          side: const BorderSide(color: Color(0xFFD8E4F2)),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: Color(0xFFE2E8F0),
+        thickness: 1,
       ),
     );
   }

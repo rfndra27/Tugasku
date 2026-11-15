@@ -322,6 +322,12 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
     final projects = provider.groupProjects;
     final isPremium = provider.profile?.isPremium ?? false;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final subContainerColor = isDark ? AppConstants.inputColor : const Color(0xFFF1F5F9);
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final onSurfaceSecondary = onSurface.withValues(alpha: 0.65);
+    final borderColor = Theme.of(context).dividerColor;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -341,17 +347,17 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.groups_rounded, size: 72, color: AppConstants.borderSubtleColor),
+                    Icon(Icons.groups_rounded, size: 72, color: borderColor),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'Belum Ada Proyek Kelompok',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: onSurface),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Buat kelompok tugas kuliah untuk membagi subtask per anggota dan kirim pengingat WhatsApp secara instan!',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppConstants.textSecondaryColor, fontSize: 13),
+                      style: TextStyle(color: onSurfaceSecondary, fontSize: 13),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
@@ -373,7 +379,7 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                   margin: const EdgeInsets.only(bottom: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
-                    side: const BorderSide(color: AppConstants.borderSubtleColor),
+                    side: BorderSide(color: borderColor),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -402,13 +408,13 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppConstants.inputColor,
+                                color: subContainerColor,
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: AppConstants.borderSubtleColor),
+                                border: Border.all(color: borderColor),
                               ),
                               child: Text(
                                 'Kode: ${project.inviteCode}',
-                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppConstants.textSecondaryColor),
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: onSurfaceSecondary),
                               ),
                             ),
                           ],
@@ -416,7 +422,7 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                         const SizedBox(height: 10),
                         Text(
                           project.title,
-                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppConstants.textPrimaryColor),
+                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: onSurface),
                         ),
                         const SizedBox(height: 16),
 
@@ -426,7 +432,7 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                           children: [
                             Text(
                               'Anggota (${project.members.length}${isPremium ? '' : ' / ${AppConstants.freeMaxGroupMembers}'}):',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor),
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: onSurface),
                             ),
                             TextButton.icon(
                               onPressed: () => _showAddMemberDialog(project, isPremium),
@@ -443,15 +449,15 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                             margin: const EdgeInsets.only(bottom: 8),
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color: AppConstants.inputColor,
+                              color: subContainerColor,
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AppConstants.borderSubtleColor),
+                              border: Border.all(color: borderColor),
                             ),
                             child: Row(
                               children: [
                                 CircleAvatar(
                                   radius: 14,
-                                  backgroundColor: m.isLeader ? AppConstants.primaryColor : AppConstants.elevatedSurfaceColor,
+                                  backgroundColor: m.isLeader ? AppConstants.primaryColor : (isDark ? AppConstants.elevatedSurfaceColor : const Color(0xFFCBD5E1)),
                                   child: Text(
                                     m.name.isNotEmpty ? m.name[0].toUpperCase() : '?',
                                     style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
@@ -464,11 +470,11 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                                     children: [
                                       Text(
                                         m.name,
-                                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor),
+                                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: onSurface),
                                       ),
                                       Text(
                                         '${m.role == 'leader' ? '👑 Ketua' : 'Anggota'} • ${m.phone}',
-                                        style: const TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor),
+                                        style: TextStyle(fontSize: 11, color: onSurfaceSecondary),
                                       ),
                                     ],
                                   ),
@@ -524,6 +530,10 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
     final progress = deliverables.isEmpty
         ? 0
         : (deliverables.map((item) => item.progressPercent).reduce((a, b) => a + b) / deliverables.length).round();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final onSurfaceSecondary = onSurface.withValues(alpha: 0.65);
+    final itemBg = isDark ? AppConstants.inputColor : const Color(0xFFF1F5F9);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -531,7 +541,7 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Deliverables Tim', style: TextStyle(fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor)),
+            Text('Deliverables Tim', style: TextStyle(fontWeight: FontWeight.bold, color: onSurface)),
             TextButton.icon(
               onPressed: () => _showAddDeliverableDialog(project),
               icon: const Icon(Icons.add_task_rounded, size: 16),
@@ -542,7 +552,7 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('${deliverables.length} Subtugas', style: const TextStyle(fontSize: 12, color: AppConstants.textSecondaryColor)),
+            Text('${deliverables.length} Subtugas', style: TextStyle(fontSize: 12, color: onSurfaceSecondary)),
             Text('$progress% selesai', style: const TextStyle(fontWeight: FontWeight.bold, color: AppConstants.primaryColor)),
           ],
         ),
@@ -551,7 +561,7 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
           value: progress / 100,
           minHeight: 8,
           borderRadius: BorderRadius.circular(8),
-          backgroundColor: AppConstants.elevatedSurfaceColor,
+          backgroundColor: isDark ? AppConstants.elevatedSurfaceColor : const Color(0xFFE2E8F0),
           color: AppConstants.primaryColor,
         ),
         const SizedBox(height: 10),
@@ -563,7 +573,11 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                   : 'Menunggu';
           return Card(
             margin: const EdgeInsets.only(bottom: 6),
-            color: AppConstants.inputColor,
+            color: itemBg,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: BorderSide(color: Theme.of(context).dividerColor),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(10),
               child: Column(
@@ -573,10 +587,10 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                       Expanded(
                         child: Text(
                           deliverable.title,
-                          style: const TextStyle(fontWeight: FontWeight.w700, color: AppConstants.textPrimaryColor),
+                          style: TextStyle(fontWeight: FontWeight.w700, color: onSurface),
                         ),
                       ),
-                      Text(statusLabel, style: const TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor)),
+                      Text(statusLabel, style: TextStyle(fontSize: 11, color: onSurfaceSecondary)),
                       const SizedBox(width: 8),
                       IconButton(
                         icon: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.redAccent),
@@ -612,14 +626,14 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                           },
                         ),
                       ),
-                      Text('${deliverable.progressPercent}%'),
+                      Text('${deliverable.progressPercent}%', style: TextStyle(color: onSurface)),
                     ],
                   ),
                   Row(
                     children: [
-                      Text('${deliverable.type} • Prioritas ${deliverable.priority}', style: const TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor)),
+                      Text('${deliverable.type} • Prioritas ${deliverable.priority}', style: TextStyle(fontSize: 11, color: onSurfaceSecondary)),
                       const Spacer(),
-                      Text(deliverable.ownerName, style: const TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor)),
+                      Text(deliverable.ownerName, style: TextStyle(fontSize: 11, color: onSurfaceSecondary)),
                     ],
                   ),
                 ],
@@ -629,13 +643,13 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
         }),
         if (activities.isNotEmpty) ...[
           const SizedBox(height: 8),
-          const Text('Riwayat Aktivitas', style: TextStyle(fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor)),
+          Text('Riwayat Aktivitas', style: TextStyle(fontWeight: FontWeight.bold, color: onSurface)),
           const SizedBox(height: 4),
           ...activities.take(3).map((activity) => ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.history_rounded, size: 18, color: AppConstants.primaryColor),
-                title: Text('${activity.actorName} ${activity.description}', style: const TextStyle(fontSize: 12, color: AppConstants.textSecondaryColor)),
+                title: Text('${activity.actorName} ${activity.description}', style: TextStyle(fontSize: 12, color: onSurfaceSecondary)),
               )),
         ],
       ],

@@ -308,17 +308,17 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.event_available_rounded, size: 64, color: AppConstants.borderSubtleColor),
+                          Icon(Icons.event_available_rounded, size: 64, color: Theme.of(context).dividerColor),
                           const SizedBox(height: 16),
                           Text(
                             'Tidak ada jadwal di hari ${_dayLabels[_selectedDate.weekday - 1]}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppConstants.textPrimaryColor),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
                           ),
                           const SizedBox(height: 8),
-                          const Text(
+                          Text(
                             'Tambahkan jadwal kuliah dengan menekan tombol (+) di atas untuk melihat rekomendasi celah belajar!',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: AppConstants.textSecondaryColor, fontSize: 13),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65), fontSize: 13),
                           ),
                           const SizedBox(height: 16),
                           Wrap(
@@ -357,6 +357,9 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
   }
 
   Widget _buildTimelineCard(TimelineItem item, TaskProvider provider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final onSurfaceSecondary = onSurface.withValues(alpha: 0.65);
     Color cardColor;
     Color accentColor;
     IconData icon;
@@ -364,25 +367,25 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
 
     switch (item.type) {
       case TimelineItemType.classSchedule:
-        cardColor = AppConstants.elevatedSurfaceColor;
-        accentColor = AppConstants.successColor;
+        cardColor = isDark ? AppConstants.elevatedSurfaceColor : const Color(0xFFDCFCE7);
+        accentColor = isDark ? AppConstants.successColor : const Color(0xFF15803D);
         icon = Icons.school_rounded;
         badgeText = 'Kuliah';
         break;
       case TimelineItemType.personalAgenda:
-        cardColor = const Color(0xFF12302E);
-        accentColor = const Color(0xFF2DD4BF);
+        cardColor = isDark ? const Color(0xFF12302E) : const Color(0xFFCCFBF1);
+        accentColor = isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0F766E);
         icon = Icons.person_outline_rounded;
         badgeText = 'Agenda Pribadi';
         break;
       case TimelineItemType.taskDeadline:
-        cardColor = const Color(0xFF332515);
-        accentColor = AppConstants.warningColor;
+        cardColor = isDark ? const Color(0xFF332515) : const Color(0xFFFEF3C7);
+        accentColor = isDark ? AppConstants.warningColor : const Color(0xFFB45309);
         icon = Icons.alarm_rounded;
         badgeText = 'Deadline';
         break;
       case TimelineItemType.studyGapRecommendation:
-        cardColor = AppConstants.elevatedSurfaceColor;
+        cardColor = isDark ? AppConstants.elevatedSurfaceColor : const Color(0xFFEDE9FE);
         accentColor = AppConstants.primaryColor;
         icon = Icons.bolt_rounded;
         badgeText = 'Rekomendasi Celah Belajar';
@@ -398,7 +401,7 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
         border: Border.all(
           color: item.type == TimelineItemType.studyGapRecommendation
               ? AppConstants.primaryColor.withValues(alpha: 0.6)
-              : AppConstants.borderSubtleColor,
+              : Theme.of(context).dividerColor,
           width: item.type == TimelineItemType.studyGapRecommendation ? 1.5 : 1,
         ),
       ),
@@ -452,7 +455,7 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
                     ),
                     if (item.classSchedule != null) ...[
                       IconButton(
-                        icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppConstants.textSecondaryColor),
+                        icon: Icon(Icons.delete_outline_rounded, size: 18, color: onSurfaceSecondary),
                         onPressed: () => provider.deleteClassSchedule(item.classSchedule!.id),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
@@ -460,7 +463,7 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
                     ],
                     if (item.personalAgenda != null) ...[
                       IconButton(
-                        icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppConstants.textSecondaryColor),
+                        icon: Icon(Icons.delete_outline_rounded, size: 18, color: onSurfaceSecondary),
                         onPressed: () => provider.deletePersonalAgenda(item.personalAgenda!.id),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
@@ -478,12 +481,12 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
                 const SizedBox(height: 6),
                 Text(
                   item.title,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppConstants.textPrimaryColor),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: onSurface),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   item.subtitle,
-                  style: const TextStyle(fontSize: 12, color: AppConstants.textSecondaryColor),
+                  style: TextStyle(fontSize: 12, color: onSurfaceSecondary),
                 ),
               ],
             ),

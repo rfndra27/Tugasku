@@ -73,53 +73,59 @@ class _PremiumScreenState extends State<PremiumScreen> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: Theme.of(context).cardColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: AppConstants.borderSubtleColor),
-          ),
-          title: Row(
-            children: const [
-              Icon(Icons.qr_code_scanner_rounded, color: AppConstants.primaryColor),
-              SizedBox(width: 8),
-              Text('Menunggu Pembayaran', style: TextStyle(color: AppConstants.textPrimaryColor, fontSize: 16)),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppConstants.inputColor,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppConstants.borderSubtleColor),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('ID Transaksi:', style: TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor)),
-                    Text(orderId, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppConstants.textPrimaryColor)),
-                    const SizedBox(height: 8),
-                    const Text('Total Tagihan:', style: TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor)),
-                    const Text('Rp 10.000 (1 Bulan Premium)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppConstants.warningColor)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-              const Text(
-                '1. Selesaikan pembayaran di jendela Midtrans (QRIS, GoPay, ShopeePay, atau Transfer Bank).\n2. Setelah berhasil, klik tombol "Verifikasi Pembayaran" di bawah ini.',
-                style: TextStyle(fontSize: 12, color: AppConstants.textSecondaryColor, height: 1.4),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Batal / Nanti', style: TextStyle(color: AppConstants.textSecondaryColor)),
+        builder: (ctx, setDialogState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          final onSurface = Theme.of(context).colorScheme.onSurface;
+          final onSurfaceSecondary = onSurface.withValues(alpha: 0.65);
+          final borderColor = Theme.of(context).dividerColor;
+
+          return AlertDialog(
+            backgroundColor: Theme.of(context).cardColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(color: borderColor),
             ),
+            title: Row(
+              children: [
+                const Icon(Icons.qr_code_scanner_rounded, color: AppConstants.primaryColor),
+                const SizedBox(width: 8),
+                Text('Menunggu Pembayaran', style: TextStyle(color: onSurface, fontSize: 16, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppConstants.inputColor : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: borderColor),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('ID Transaksi:', style: TextStyle(fontSize: 11, color: onSurfaceSecondary)),
+                      Text(orderId, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: onSurface)),
+                      const SizedBox(height: 8),
+                      Text('Total Tagihan:', style: TextStyle(fontSize: 11, color: onSurfaceSecondary)),
+                      const Text('Rp 10.000 (1 Bulan Premium)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppConstants.warningColor)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  '1. Selesaikan pembayaran di jendela Midtrans (QRIS, GoPay, ShopeePay, atau Transfer Bank).\n2. Setelah berhasil, klik tombol "Verifikasi Pembayaran" di bawah ini.',
+                  style: TextStyle(fontSize: 12, color: onSurfaceSecondary, height: 1.4),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text('Batal / Nanti', style: TextStyle(color: onSurfaceSecondary)),
+              ),
             ElevatedButton(
               onPressed: isChecking
                   ? null
@@ -160,10 +166,11 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   : const Text('Verifikasi Pembayaran'),
             ),
           ],
-        ),
-      ),
-    );
-  }
+        );
+      },
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -238,9 +245,9 @@ class _PremiumScreenState extends State<PremiumScreen> {
             const SizedBox(height: 24),
 
             // Comparison Table
-            const Text(
+            Text(
               'Perbandingan Fitur:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
             ),
             const SizedBox(height: 12),
 
@@ -328,10 +335,10 @@ class _PremiumScreenState extends State<PremiumScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'Mendukung QRIS (GoPay, OVO, Dana, ShopeePay) & Virtual Account Bank. Diproses secara aman via Midtrans Snap.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor),
+                style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65)),
               ),
             ],
           ],
@@ -346,14 +353,22 @@ class _PremiumScreenState extends State<PremiumScreen> {
     required String premium,
     bool isHighlight = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final onSurfaceSecondary = onSurface.withValues(alpha: 0.65);
+    final borderColor = Theme.of(context).dividerColor;
+    final rowBg = isHighlight
+        ? AppConstants.primaryColor.withValues(alpha: isDark ? 0.15 : 0.08)
+        : Theme.of(context).cardColor;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isHighlight ? AppConstants.primaryColor.withValues(alpha: 0.12) : AppConstants.cardColor,
+        color: rowBg,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isHighlight ? AppConstants.primaryColor.withValues(alpha: 0.4) : AppConstants.borderSubtleColor,
+          color: isHighlight ? AppConstants.primaryColor.withValues(alpha: 0.4) : borderColor,
         ),
       ),
       child: Row(
@@ -365,7 +380,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: isHighlight ? FontWeight.bold : FontWeight.w500,
-                color: isHighlight ? AppConstants.textPrimaryColor : AppConstants.textSecondaryColor,
+                color: onSurface,
               ),
             ),
           ),
@@ -374,7 +389,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
             child: Text(
               free,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor),
+              style: TextStyle(fontSize: 11, color: onSurfaceSecondary),
             ),
           ),
           Expanded(

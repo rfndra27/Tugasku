@@ -44,17 +44,17 @@ class TaskCardWidget extends StatelessWidget {
                   backgroundColor: Theme.of(context).cardColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
-                    side: const BorderSide(color: AppConstants.borderSubtleColor),
+                    side: BorderSide(color: Theme.of(context).dividerColor),
                   ),
-                  title: const Text('Hapus Tugas?', style: TextStyle(color: AppConstants.textPrimaryColor)),
+                  title: Text('Hapus Tugas?', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
                   content: Text(
                     'Yakin ingin menghapus "${task.title}"? Tugas ini tidak dapat dikembalikan.',
-                    style: const TextStyle(color: AppConstants.textSecondaryColor),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
                   ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Batal', style: TextStyle(color: AppConstants.textSecondaryColor)),
+                      child: Text('Batal', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65))),
                     ),
                     ElevatedButton(
                       onPressed: () => Navigator.pop(ctx, true),
@@ -157,12 +157,12 @@ class TaskCardWidget extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
-                          children: const [
-                            Icon(Icons.groups_rounded, size: 12, color: AppConstants.primaryColor),
-                            SizedBox(width: 3),
+                          children: [
+                            const Icon(Icons.groups_rounded, size: 12, color: AppConstants.primaryColor),
+                            const SizedBox(width: 3),
                             Text(
                               'Kelompok',
-                              style: TextStyle(fontSize: 10, color: AppConstants.textPrimaryColor, fontWeight: FontWeight.bold),
+                              style: const TextStyle(fontSize: 10, color: AppConstants.primaryColor, fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
@@ -172,11 +172,11 @@ class TaskCardWidget extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: task.isCompleted
-                            ? AppConstants.surfaceColor
-                            : urgencyColor.withValues(alpha: 0.2),
+                            ? (theme.brightness == Brightness.dark ? AppConstants.surfaceColor : const Color(0xFFF1F5F9))
+                            : urgencyColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: task.isCompleted ? AppConstants.borderSubtleColor : urgencyColor.withValues(alpha: 0.4),
+                          color: task.isCompleted ? theme.dividerColor : urgencyColor.withValues(alpha: 0.4),
                         ),
                       ),
                       child: Text(
@@ -184,7 +184,7 @@ class TaskCardWidget extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: task.isCompleted ? AppConstants.textSecondaryColor : urgencyColor,
+                          color: task.isCompleted ? theme.colorScheme.onSurface.withValues(alpha: 0.6) : urgencyColor,
                         ),
                       ),
                     ),
@@ -224,7 +224,7 @@ class TaskCardWidget extends StatelessWidget {
                         Icon(
                           Icons.schedule_rounded,
                           size: 14,
-                          color: task.isCompleted ? AppConstants.textSecondaryColor : urgencyColor,
+                          color: task.isCompleted ? theme.colorScheme.onSurface.withValues(alpha: 0.5) : urgencyColor,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -234,7 +234,7 @@ class TaskCardWidget extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: task.isCompleted ? AppConstants.textSecondaryColor : urgencyColor,
+                            color: task.isCompleted ? theme.colorScheme.onSurface.withValues(alpha: 0.6) : urgencyColor,
                           ),
                         ),
                       ],
@@ -244,16 +244,16 @@ class TaskCardWidget extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: AppConstants.inputColor,
+                            color: theme.brightness == Brightness.dark ? AppConstants.inputColor : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: AppConstants.borderSubtleColor),
+                            border: Border.all(color: theme.dividerColor),
                           ),
                           child: Text(
                             'Bobot ${task.weightPercentage.toStringAsFixed(0)}%',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: AppConstants.textSecondaryColor,
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
                             ),
                           ),
                         ),
@@ -270,7 +270,7 @@ class TaskCardWidget extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: task.progressPercentage,
                       minHeight: 5,
-                      backgroundColor: AppConstants.inputColor,
+                      backgroundColor: theme.brightness == Brightness.dark ? AppConstants.inputColor : const Color(0xFFE2E8F0),
                       valueColor: AlwaysStoppedAnimation<Color>(
                         task.progressPercentage == 1.0
                             ? AppConstants.successColor
@@ -284,14 +284,14 @@ class TaskCardWidget extends StatelessWidget {
                     children: [
                       Text(
                         'Subtask: ${task.completedSubtasks}/${task.totalSubtasks}',
-                        style: const TextStyle(fontSize: 10, color: AppConstants.textSecondaryColor),
+                        style: TextStyle(fontSize: 10, color: theme.colorScheme.onSurface.withValues(alpha: 0.65)),
                       ),
                       Text(
                         '${(task.progressPercentage * 100).toInt()}%',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          color: AppConstants.textSecondaryColor,
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
                         ),
                       ),
                     ],
