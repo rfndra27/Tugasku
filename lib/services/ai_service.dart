@@ -362,13 +362,20 @@ Keluarkan HANYA JSON array tanpa markdown:
     required List<TaskModel> activeTasks,
   }) async {
     // Check AI Quota
-    final quotaResult = await firebaseService.checkAndIncrementAiQuota();
-    if (quotaResult['allowed'] != true) {
-      return AiActionResult(
-        success: false,
-        isQuotaExceeded: true,
-        errorMessage: quotaResult['message'] ?? 'Kuota AI Anda telah habis.',
-      );
+    // If the quota service is temporarily unavailable, continue with the
+    // grounded local fallback instead of leaving the user without an answer.
+    var quotaServiceUnavailable = false;
+    try {
+      final quotaResult = await firebaseService.checkAndIncrementAiQuota();
+      if (quotaResult['allowed'] != true) {
+        return AiActionResult(
+          success: false,
+          isQuotaExceeded: true,
+          errorMessage: quotaResult['message'] ?? 'Kuota AI Anda telah habis.',
+        );
+      }
+    } catch (_) {
+      quotaServiceUnavailable = true;
     }
 
     final tasksContext = activeTasks.isEmpty
@@ -378,7 +385,7 @@ Keluarkan HANYA JSON array tanpa markdown:
             return '- [${t.courseName}] "${t.title}" | Deadline: $formattedDate | Bobot: ${t.weightPercentage}% | Skor Prioritas: ${t.priorityScore.toStringAsFixed(1)} | Subtask: ${t.completedSubtasks}/${t.totalSubtasks}';
           }).join('\n');
 
-    if (_geminiApiKey.isNotEmpty) {
+    if (!quotaServiceUnavailable && _geminiApiKey.isNotEmpty) {
       try {
         final prompt = '''
 Kamu adalah "TugasKu AI", asisten produktivitas dan teman belajar mahasiswa Indonesia yang ramah, solutif, dan suportif.

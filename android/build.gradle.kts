@@ -3,9 +3,6 @@ allprojects {
         google()
         mavenCentral()
     }
-    tasks.matching { it.name.contains("AarMetadata", ignoreCase = true) }.configureEach {
-        enabled = false
-    }
 }
 
 val newBuildDir: Directory =
@@ -21,6 +18,19 @@ subprojects {
 
 subprojects {
     project.evaluationDependsOn(":app")
+}
+
+subprojects {
+    plugins.withId("com.android.library") {
+        project.extensions.findByName("android")?.let { ext ->
+            val setter = ext.javaClass.methods.firstOrNull { 
+                it.name == "setCompileSdk" || (it.name == "compileSdkVersion" && it.parameterCount == 1)
+            }
+            try {
+                setter?.invoke(ext, 36)
+            } catch (_: Exception) {}
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
