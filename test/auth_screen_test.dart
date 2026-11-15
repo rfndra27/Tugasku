@@ -23,12 +23,19 @@ class MockTestFirebaseService extends FirebaseService {
   }
 
   @override
+  Future<UserCredential> signInWithIdentifierPassword(String identifier, String password) async {
+    didAttemptLogin = true;
+    throw Exception('Email/Nomor telepon atau kata sandi salah.');
+  }
+
+  @override
   Future<UserCredential> signUpWithEmailPassword({
     required String email,
     required String password,
     required String fullName,
     required String university,
     String nim = '',
+    String phone = '',
   }) async {
     didAttemptRegister = true;
     throw Exception('Pendaftaran gagal.');
@@ -81,7 +88,7 @@ void main() {
       expect(find.widgetWithText(Tab, 'Register'), findsOneWidget);
 
       // Stacked Input Fields on Login
-      expect(find.text('Email Address'), findsOneWidget);
+      expect(find.text('Email atau Nomor Telepon'), findsOneWidget);
       expect(find.text('Password'), findsOneWidget);
 
       // Options Row
@@ -91,7 +98,8 @@ void main() {
       // Primary Button & Social Login
       expect(find.widgetWithText(ElevatedButton, 'Login'), findsOneWidget);
       expect(find.text('Or login with'), findsOneWidget);
-      expect(find.text('Google'), findsOneWidget);
+      expect(find.text('Gmail'), findsOneWidget);
+      expect(find.text('No. Telp'), findsOneWidget);
       expect(find.text('Facebook'), findsOneWidget);
     });
 
@@ -102,7 +110,7 @@ void main() {
       await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Email dan kata sandi wajib diisi.'), findsOneWidget);
+      expect(find.text('Email/Nomor Telepon dan kata sandi wajib diisi.'), findsOneWidget);
     });
 
     testWidgets('Can switch to Register tab and display registration inputs', (tester) async {
@@ -117,6 +125,7 @@ void main() {
       expect(find.text('NIM / NPM'), findsOneWidget);
       expect(find.text('University / Campus'), findsOneWidget);
       expect(find.text('Email Address'), findsOneWidget);
+      expect(find.text('Nomor Telepon / WhatsApp'), findsOneWidget);
       expect(find.text('Password'), findsOneWidget);
       expect(find.widgetWithText(ElevatedButton, 'Register'), findsOneWidget);
 

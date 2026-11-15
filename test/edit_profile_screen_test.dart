@@ -38,7 +38,16 @@ class MockProfileFirebaseService extends FirebaseService {
   Stream<List<ClassScheduleModel>> streamSchedules(String userId) => Stream.value([]);
 
   @override
+  Stream<List<PersonalAgendaModel>> streamPersonalAgendas(String userId) => Stream.value([]);
+
+  @override
   Stream<List<GroupProjectModel>> streamGroupProjects(String userId) => Stream.value([]);
+
+  @override
+  Stream<List<GroupDeliverableModel>> streamGroupDeliverables(String userId, String projectId) => Stream.value([]);
+
+  @override
+  Stream<List<GroupActivityModel>> streamGroupActivityLogs(String userId, String projectId) => Stream.value([]);
 
   @override
   Future<void> updateUserProfile(UserProfileModel profile) async {

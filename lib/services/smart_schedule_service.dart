@@ -18,6 +18,7 @@ class TimelineItem {
   final int endMinutes;
   final TaskModel? recommendedTask;
   final ClassScheduleModel? classSchedule;
+  final PersonalAgendaModel? personalAgenda;
   final TaskModel? deadlineTask;
   final bool hasConflict;
 
@@ -30,6 +31,7 @@ class TimelineItem {
     required this.endMinutes,
     this.recommendedTask,
     this.classSchedule,
+    this.personalAgenda,
     this.deadlineTask,
     this.hasConflict = false,
   });
@@ -86,6 +88,7 @@ class SmartScheduleService {
         timeRange: '${agenda.startTime} - ${agenda.endTime}',
         startMinutes: agenda.startTotalMinutes,
         endMinutes: agenda.endTotalMinutes,
+        personalAgenda: agenda,
         hasConflict: hasConflict,
       ));
     }

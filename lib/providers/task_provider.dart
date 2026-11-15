@@ -51,6 +51,9 @@ class TaskProvider with ChangeNotifier {
   StreamSubscription? _tasksSub;
   StreamSubscription? _schedulesSub;
   StreamSubscription? _groupsSub;
+  StreamSubscription? _agendasSub;
+  final List<StreamSubscription> _deliverablesSubs = [];
+  final List<StreamSubscription> _activitySubs = [];
 
   // Getters
   String? get userId => _userId;
@@ -112,7 +115,15 @@ class TaskProvider with ChangeNotifier {
   List<PersonalAgendaModel> get personalAgendas => _personalAgendas;
   List<GroupProjectModel> get groupProjects => _groupProjects;
   List<GroupDeliverableModel> deliverablesFor(String projectId) => _deliverablesByProject[projectId] ?? const [];
+  List<GroupDeliverableModel> get allGroupDeliverables {
+    final list = <GroupDeliverableModel>[];
+    for (final deliverables in _deliverablesByProject.values) {
+      list.addAll(deliverables);
+    }
+    return list;
+  }
   List<GroupActivityModel> activityFor(String projectId) => _activityByProject[projectId] ?? const [];
+  List<PersonalAgendaModel> get allPersonalAgendas => _personalAgendas;
   AiService get aiService => _aiService;
 
   List<TaskModel> get allTasks => _allTasks;
@@ -202,9 +213,38 @@ class TaskProvider with ChangeNotifier {
       notifyListeners();
     });
 
-    // 4. Group Projects Stream
+    // 4. Personal Agendas Stream
+    _agendasSub = _firebaseService.streamPersonalAgendas(userId).listen((agendas) {
+      _personalAgendas = agendas;
+      notifyListeners();
+    });
+
+    // 5. Group Projects Stream
     _groupsSub = _firebaseService.streamGroupProjects(userId).listen((groups) {
       _groupProjects = groups;
+      for (final sub in _deliverablesSubs) {
+        sub.cancel();
+      }
+      _deliverablesSubs.clear();
+      for (final sub in _activitySubs) {
+        sub.cancel();
+      }
+      _activitySubs.clear();
+
+      // Load deliverables and activities for each project
+      for (final project in groups) {
+        final dSub = _firebaseService.streamGroupDeliverables(userId, project.id).listen((deliverables) {
+          _deliverablesByProject[project.id] = deliverables;
+          notifyListeners();
+        });
+        _deliverablesSubs.add(dSub);
+
+        final aSub = _firebaseService.streamGroupActivityLogs(userId, project.id).listen((activities) {
+          _activityByProject[project.id] = activities;
+          notifyListeners();
+        });
+        _activitySubs.add(aSub);
+      }
       notifyListeners();
     });
   }
@@ -494,6 +534,15 @@ class TaskProvider with ChangeNotifier {
     _tasksSub?.cancel();
     _schedulesSub?.cancel();
     _groupsSub?.cancel();
+    _agendasSub?.cancel();
+    for (final sub in _deliverablesSubs) {
+      sub.cancel();
+    }
+    _deliverablesSubs.clear();
+    for (final sub in _activitySubs) {
+      sub.cancel();
+    }
+    _activitySubs.clear();
   }
 
   @override
@@ -636,6 +685,26 @@ class TaskProvider with ChangeNotifier {
     await _firebaseService.deleteSchedule(_userId!, scheduleId);
   }
 
+  Future<void> addPersonalAgenda(PersonalAgendaModel agenda) async {
+    if (_userId == null) return;
+    if (AppConstants.useDemoData) {
+      _personalAgendas = [..._personalAgendas, agenda.copyWith(userId: _userId)];
+      notifyListeners();
+      return;
+    }
+    await _firebaseService.addPersonalAgenda(_userId!, agenda.copyWith(userId: _userId));
+  }
+
+  Future<void> deletePersonalAgenda(String agendaId) async {
+    if (_userId == null) return;
+    if (AppConstants.useDemoData) {
+      _personalAgendas.removeWhere((a) => a.id == agendaId);
+      notifyListeners();
+      return;
+    }
+    await _firebaseService.deletePersonalAgenda(_userId!, agendaId);
+  }
+
   List<TimelineItem> getDailyTimeline(DateTime date) {
     return _smartScheduleService.generateDailyTimeline(
       selectedDate: date,
@@ -645,19 +714,70 @@ class TaskProvider with ChangeNotifier {
     );
   }
 
-  void updateDeliverable(GroupDeliverableModel deliverable) {
-    final list = [...deliverablesFor(deliverable.projectId)];
-    final index = list.indexWhere((item) => item.id == deliverable.id);
-    if (index >= 0) {
-      list[index] = deliverable;
+  Future<void> addDeliverable(GroupDeliverableModel deliverable) async {
+    if (_userId == null) return;
+    if (AppConstants.useDemoData) {
+      final list = [...deliverablesFor(deliverable.projectId), deliverable];
       _deliverablesByProject[deliverable.projectId] = list;
       (_activityByProject[deliverable.projectId] ??= []).insert(
         0,
         GroupActivityModel(
           actorName: _profile?.fullName ?? 'Anggota',
-          description: 'memperbarui ${deliverable.title} menjadi ${deliverable.progressPercent}%',
+          description: 'menambahkan deliverable ${deliverable.title}',
         ),
       );
+      notifyListeners();
+      return;
+    }
+    await _firebaseService.addGroupDeliverable(_userId!, deliverable);
+  }
+
+  Future<void> updateDeliverable(GroupDeliverableModel deliverable) async {
+    final actorName = _profile?.fullName ?? 'Anggota';
+    if (_userId == null) return;
+    if (AppConstants.useDemoData) {
+      final list = [...deliverablesFor(deliverable.projectId)];
+      final index = list.indexWhere((item) => item.id == deliverable.id);
+      if (index >= 0) {
+        list[index] = deliverable;
+        _deliverablesByProject[deliverable.projectId] = list;
+        (_activityByProject[deliverable.projectId] ??= []).insert(
+          0,
+          GroupActivityModel(
+            actorName: actorName,
+            description: 'memperbarui ${deliverable.title} menjadi ${deliverable.progressPercent}%',
+          ),
+        );
+        notifyListeners();
+      }
+      return;
+    }
+    await _firebaseService.updateGroupDeliverable(_userId!, deliverable, actorName: actorName);
+  }
+
+  Future<void> deleteDeliverable(String projectId, String deliverableId) async {
+    if (_userId == null) return;
+    if (AppConstants.useDemoData) {
+      final list = [...deliverablesFor(projectId)]..removeWhere((d) => d.id == deliverableId);
+      _deliverablesByProject[projectId] = list;
+      notifyListeners();
+      return;
+    }
+    await _firebaseService.deleteGroupDeliverable(_userId!, projectId, deliverableId);
+  }
+
+  Future<void> seedCharterData() async {
+    if (_userId == null) return;
+    if (AppConstants.useDemoData) {
+      _loadDemoData(_userId!);
+      return;
+    }
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _firebaseService.seedInitialCharterDataIfEmpty(_userId!);
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }

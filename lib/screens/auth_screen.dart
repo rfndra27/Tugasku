@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../services/firebase_service.dart';
 
@@ -23,6 +24,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   final _regUniversityController = TextEditingController(text: 'Politeknik Negeri Jakarta');
   final _regEmailController = TextEditingController();
   final _regPasswordController = TextEditingController();
+  final _regPhoneController = TextEditingController();
 
   bool _rememberMe = false;
   bool _obscureLoginPassword = true;
@@ -57,11 +59,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   }
 
   Future<void> _handleLogin() async {
-    final email = _loginEmailController.text.trim();
+    final identifier = _loginEmailController.text.trim();
     final password = _loginPasswordController.text;
 
-    if (email.isEmpty || password.isEmpty) {
-      setState(() => _errorMessage = 'Email dan kata sandi wajib diisi.');
+    if (identifier.isEmpty || password.isEmpty) {
+      setState(() => _errorMessage = 'Email/Nomor Telepon dan kata sandi wajib diisi.');
       return;
     }
 
@@ -71,7 +73,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     });
 
     try {
-      await widget.firebaseService.signInWithEmailPassword(email, password);
+      await widget.firebaseService.signInWithIdentifierPassword(identifier, password);
     } catch (e) {
       setState(() {
         _errorMessage = 'Gagal masuk: ${e.toString().replaceAll(RegExp(r'\[.*?\]'), '').trim()}';
@@ -89,8 +91,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     final university = _regUniversityController.text.trim();
     final email = _regEmailController.text.trim();
     final password = _regPasswordController.text;
+    final phone = _regPhoneController.text.trim();
 
-    if (fullName.isEmpty || email.isEmpty || password.isEmpty) {
+    if (fullName.isEmpty || email.isEmpty || password.isEmpty || phone.isEmpty) {
       setState(() => _errorMessage = 'Mohon lengkapi seluruh field yang wajib diisi.');
       return;
     }
@@ -112,6 +115,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         fullName: fullName,
         university: university,
         nim: nim,
+        phone: phone,
       );
     } catch (e) {
       setState(() {
@@ -221,6 +225,151 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               }
             },
             child: const Text('Kirim'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEnterOtpDialog({required String verificationId}) {
+    final codeController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Masukkan Kode OTP', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Kode OTP 6-digit telah dikirim ke nomor telepon Anda.'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: codeController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Kode OTP',
+                hintText: '123456',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final code = codeController.text.trim();
+              if (code.isEmpty) return;
+              Navigator.pop(ctx);
+              try {
+                await widget.firebaseService.confirmPhoneOtp(
+                  verificationId: verificationId,
+                  smsCode: code,
+                );
+                if (mounted) {
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Kode OTP salah: ${e.toString().replaceAll(RegExp(r'\[.*?\]'), '').trim()}'),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Masuk'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPhoneOtpDialog() {
+    final phoneController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Masukkan Nomor Telepon', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Masukkan nomor telepon yang terdaftar di akun kamu (dengan awalan 08 atau +62).',
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                  labelText: 'Nomor Telepon',
+                  hintText: '081234567890 atau +628123456789',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final phone = phoneController.text.trim();
+              if (phone.isEmpty) return;
+              Navigator.pop(ctx);
+              try {
+                if (kIsWeb) {
+                  final result = await widget.firebaseService.sendPhoneOtpWeb(phone);
+                  if (mounted) {
+                    _showEnterOtpDialog(verificationId: result.verificationId);
+                  }
+                } else {
+                  await widget.firebaseService.verifyPhoneOtpMobile(
+                    phoneNumber: phone,
+                    onCodeSent: (verificationId, resendToken) {
+                      if (mounted) {
+                        _showEnterOtpDialog(verificationId: verificationId);
+                      }
+                    },
+                    onError: (msg) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Gagal mengirim OTP: $msg'), backgroundColor: Colors.redAccent),
+                        );
+                      }
+                    },
+                    onAutoVerified: (cred) {
+                      if (mounted) {
+                        Navigator.popUntil(context, (route) => route.isFirst);
+                      }
+                    },
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Gagal mengirim OTP: ${e.toString().replaceAll(RegExp(r'\[.*?\]'), '').trim()}'),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Kirim Kode OTP'),
           ),
         ],
       ),
@@ -471,14 +620,14 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                                 ),
                                 const SizedBox(height: 16),
 
-                                // Google & Facebook Capsule Outlined Buttons
+                                // Google, Telp, and Facebook Capsule Outlined Buttons
                                 Row(
                                   children: [
                                     Expanded(
                                       child: OutlinedButton(
                                         onPressed: _isLoading ? null : _handleGoogleSignIn,
                                         style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(vertical: 14),
+                                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                                           side: const BorderSide(color: Color(0xFFE5E7EB)),
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(26),
@@ -486,40 +635,45 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                                         ),
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Container(
-                                              width: 22,
-                                              height: 22,
+                                              width: 20,
+                                              height: 20,
                                               alignment: Alignment.center,
                                               child: const Text(
                                                 'G',
                                                 style: TextStyle(
                                                   color: Color(0xFFEA4335),
                                                   fontWeight: FontWeight.w900,
-                                                  fontSize: 18,
+                                                  fontSize: 16,
                                                   fontFamily: 'serif',
                                                 ),
                                               ),
                                             ),
-                                            const SizedBox(width: 8),
-                                            const Text(
-                                              'Google',
-                                              style: TextStyle(
-                                                color: Color(0xFF374151),
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14,
+                                            const SizedBox(width: 4),
+                                            const Flexible(
+                                              child: Text(
+                                                'Gmail',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  color: Color(0xFF374151),
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 13,
+                                                ),
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 14),
+                                    const SizedBox(width: 8),
                                     Expanded(
                                       child: OutlinedButton(
-                                        onPressed: _isLoading ? null : _handleFacebookSignIn,
+                                        onPressed: _isLoading ? null : _showPhoneOtpDialog,
                                         style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(vertical: 14),
+                                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                                           side: const BorderSide(color: Color(0xFFE5E7EB)),
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(26),
@@ -527,15 +681,53 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                                         ),
                                         child: const Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(Icons.facebook_rounded, color: Color(0xFF1877F2), size: 22),
-                                            SizedBox(width: 8),
-                                            Text(
-                                              'Facebook',
-                                              style: TextStyle(
-                                                color: Color(0xFF374151),
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14,
+                                            Icon(Icons.sms_outlined, color: Color(0xFF6B8E78), size: 18),
+                                            SizedBox(width: 4),
+                                            Flexible(
+                                              child: Text(
+                                                'No. Telp',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  color: Color(0xFF6B8E78),
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: OutlinedButton(
+                                        onPressed: _isLoading ? null : _handleFacebookSignIn,
+                                        style: OutlinedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                                          side: const BorderSide(color: Color(0xFFE5E7EB)),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(26),
+                                          ),
+                                        ),
+                                        child: const Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.facebook_rounded, color: Color(0xFF1877F2), size: 18),
+                                            SizedBox(width: 4),
+                                            Flexible(
+                                              child: Text(
+                                                'Facebook',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  color: Color(0xFF374151),
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 13,
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -565,11 +757,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       key: const ValueKey('login_form'),
       children: [
         _buildStackedField(
-          label: 'Email Address',
+          label: 'Email atau Nomor Telepon',
           controller: _loginEmailController,
-          icon: Icons.mail_outline_rounded,
-          keyboardType: TextInputType.emailAddress,
-          hintText: 'nama@kampus.ac.id',
+          icon: Icons.alternate_email_rounded,
+          keyboardType: TextInputType.text,
+          hintText: 'nama@kampus.ac.id atau 0812xxxx',
         ),
         const SizedBox(height: 14),
         _buildStackedField(
@@ -666,6 +858,14 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           icon: Icons.mail_outline_rounded,
           keyboardType: TextInputType.emailAddress,
           hintText: 'nama@kampus.ac.id',
+        ),
+        const SizedBox(height: 12),
+        _buildStackedField(
+          label: 'Nomor Telepon / WhatsApp',
+          controller: _regPhoneController,
+          icon: Icons.phone_iphone_rounded,
+          keyboardType: TextInputType.phone,
+          hintText: '081234567890',
         ),
         const SizedBox(height: 12),
         _buildStackedField(

@@ -11,6 +11,7 @@ import 'firebase_options.dart';
 import 'providers/task_provider.dart';
 import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart';
 import 'services/firebase_service.dart';
 import 'services/notification_service.dart';
 
@@ -66,6 +67,7 @@ class TugasKuApp extends StatefulWidget {
 
 class _TugasKuAppState extends State<TugasKuApp> {
   ThemeMode _themeMode = ThemeMode.dark;
+  bool _showSplash = true;
 
   void _toggleTheme() {
     setState(() {
@@ -83,49 +85,65 @@ class _TugasKuAppState extends State<TugasKuApp> {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: _themeMode,
-      home: AppConstants.useDemoData
-          ? Builder(
-              builder: (context) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  Provider.of<TaskProvider>(context, listen: false).initialize('demo-user');
-                });
-                return HomeScreen(
-                  firebaseService: firebaseService,
-                  isDarkMode: _themeMode == ThemeMode.dark,
-                  onToggleTheme: _toggleTheme,
-                );
-              },
-            )
-          : StreamBuilder<User?>(
-              stream: firebaseService.authStateChanges,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Scaffold(
-                    body: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
+      home: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 500),
+        child: _showSplash
+            ? SplashScreen(
+                key: const ValueKey('splash_screen'),
+                onFinished: () {
+                  if (mounted) {
+                    setState(() {
+                      _showSplash = false;
+                    });
+                  }
+                },
+              )
+            : AppConstants.useDemoData
+                ? Builder(
+                    key: const ValueKey('demo_home'),
+                    builder: (context) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        Provider.of<TaskProvider>(context, listen: false).initialize('demo-user');
+                      });
+                      return HomeScreen(
+                        firebaseService: firebaseService,
+                        isDarkMode: _themeMode == ThemeMode.dark,
+                        onToggleTheme: _toggleTheme,
+                      );
+                    },
+                  )
+                : StreamBuilder<User?>(
+                    key: const ValueKey('auth_stream'),
+                    stream: firebaseService.authStateChanges,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Scaffold(
+                          body: Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
 
-                if (snapshot.hasError) {
-                  return AuthScreen(firebaseService: firebaseService);
-                }
+                      if (snapshot.hasError) {
+                        return AuthScreen(firebaseService: firebaseService);
+                      }
 
-                final user = snapshot.data;
-                if (user != null) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    Provider.of<TaskProvider>(context, listen: false).initialize(user.uid);
-                  });
-                  return HomeScreen(
-                    firebaseService: firebaseService,
-                    isDarkMode: _themeMode == ThemeMode.dark,
-                    onToggleTheme: _toggleTheme,
-                  );
-                } else {
-                  return AuthScreen(firebaseService: firebaseService);
-                }
-              },
-            ),
+                      final user = snapshot.data;
+                      if (user != null) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          Provider.of<TaskProvider>(context, listen: false).initialize(user.uid);
+                        });
+                        return HomeScreen(
+                          firebaseService: firebaseService,
+                          isDarkMode: _themeMode == ThemeMode.dark,
+                          onToggleTheme: _toggleTheme,
+                        );
+                      } else {
+                        return AuthScreen(firebaseService: firebaseService);
+                      }
+                    },
+                  ),
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../core/constants.dart';
 import '../core/priority_calculator.dart';
 import '../models/class_schedule_model.dart';
@@ -64,12 +65,14 @@ class FirebaseService {
     required String fullName,
     required String university,
     String nim = '',
+    String phone = '',
   }) async {
     final cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
     final user = cred.user;
     if (user != null) {
       await user.updateDisplayName(fullName);
       // Initialize profile document in profiles/{userId}
+      final normalizedPhone = phone.isNotEmpty ? normalizePhone(phone) : '';
       await _firestore.collection('profiles').doc(user.uid).set({
         'id': user.uid,
         'email': email,
@@ -78,7 +81,7 @@ class FirebaseService {
         'nim': nim,
         'major': '',
         'semester': '',
-        'phone': '',
+        'phone': normalizedPhone,
         'bio': '',
         'avatar_color': 0xFF6B8E78,
         'is_premium': false,
@@ -90,6 +93,9 @@ class FirebaseService {
         'ai_usage_reset_date': FieldValue.serverTimestamp(),
         'created_at': FieldValue.serverTimestamp(),
       });
+      if (normalizedPhone.isNotEmpty) {
+        await upsertPhoneLookup(phone: normalizedPhone, email: email, uid: user.uid);
+      }
     }
     return cred;
   }
@@ -100,15 +106,25 @@ class FirebaseService {
 
   Future<UserCredential> signInWithGoogle() async {
     final provider = GoogleAuthProvider();
-    final cred = await _auth.signInWithProvider(provider);
+    final cred = kIsWeb
+        ? await _auth.signInWithPopup(provider)
+        : await _auth.signInWithProvider(provider);
     await _ensureProfileExists(cred.user);
+    if (cred.user != null) {
+      await seedInitialCharterDataIfEmpty(cred.user!.uid);
+    }
     return cred;
   }
 
   Future<UserCredential> signInWithFacebook() async {
     final provider = FacebookAuthProvider();
-    final cred = await _auth.signInWithProvider(provider);
+    final cred = kIsWeb
+        ? await _auth.signInWithPopup(provider)
+        : await _auth.signInWithProvider(provider);
     await _ensureProfileExists(cred.user);
+    if (cred.user != null) {
+      await seedInitialCharterDataIfEmpty(cred.user!.uid);
+    }
     return cred;
   }
 
@@ -188,6 +204,10 @@ class FirebaseService {
         'ai_usage_reset_date': FieldValue.serverTimestamp(),
         'created_at': FieldValue.serverTimestamp(),
       });
+    }
+
+    if (profile.phone.isNotEmpty) {
+      await upsertPhoneLookup(phone: profile.phone, email: profile.email, uid: profile.id);
     }
   }
 
@@ -710,9 +730,8 @@ class FirebaseService {
     await _auth.verifyPhoneNumber(
       phoneNumber: normalized,
       verificationCompleted: (credential) async {
-        if (mounted) {
-          onAutoVerified(credential);
-        }
+        final userCredential = await _auth.signInWithCredential(credential);
+        onAutoVerified(userCredential);
       },
       verificationFailed: (e) {
         onError(e.message ?? 'Verifikasi nomor telepon gagal.');
@@ -850,6 +869,33 @@ class FirebaseService {
         .delete();
   }
 
+  Stream<List<GroupDeliverableModel>> streamGroupDeliverables(String userId, String projectId) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('group_projects')
+        .doc(projectId)
+        .collection('deliverables')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => GroupDeliverableModel.fromFirestore(doc)).toList();
+    });
+  }
+
+  Stream<List<GroupActivityModel>> streamGroupActivityLogs(String userId, String projectId) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('group_projects')
+        .doc(projectId)
+        .collection('activity_logs')
+        .orderBy('created_at', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => GroupActivityModel.fromFirestore(doc)).toList();
+    });
+  }
+
   // ----------------------------------------------------
   // AUTO SEEDER DATA KELOMPOK 6
   // ----------------------------------------------------
@@ -969,9 +1015,21 @@ class FirebaseService {
     });
 
     final memberData = [
-      {'name': 'Mochmad Remano Darusatwiko', 'phone': '+628123456789', 'role': 'leader'},
-      {'name': 'Muhammad Novansya', 'phone': '+628123456780', 'role': 'member'},
-      {'name': 'Riviera Rafa Andara', 'phone': '+628123456781', 'role': 'member'},
+      {
+        'name': 'Mochmad Remano Darusatwiko',
+        'phone': '+628123456789',
+        'role': 'Project Manager & Front-End Developer (2403421006)',
+      },
+      {
+        'name': 'Muhammad Novansya',
+        'phone': '+628123456780',
+        'role': 'Back-End Developer & Database Engineer (2403421033)',
+      },
+      {
+        'name': 'Riviera Rafa Andara',
+        'phone': '+628123456781',
+        'role': 'AI & Integration Specialist (2403421022)',
+      },
     ];
 
     for (final member in memberData) {

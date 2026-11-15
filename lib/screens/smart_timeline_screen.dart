@@ -124,6 +124,116 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
     );
   }
 
+  void _showAddPersonalAgendaDialog() {
+    final titleController = TextEditingController();
+    DateTime agendaDate = _selectedDate;
+    TimeOfDay startTime = const TimeOfDay(hour: 15, minute: 0);
+    TimeOfDay endTime = const TimeOfDay(hour: 16, minute: 30);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: Theme.of(ctx).cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: AppConstants.borderSubtleColor),
+          ),
+          title: Text('Tambah Agenda Pribadi', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: titleController,
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
+                  decoration: const InputDecoration(
+                    labelText: 'Nama Acara / Agenda',
+                    hintText: 'Rapat BEM / Koordinasi Kelompok',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Tanggal Acara', style: TextStyle(fontSize: 13)),
+                  subtitle: Text(
+                    '${agendaDate.day}/${agendaDate.month}/${agendaDate.year}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  trailing: const Icon(Icons.calendar_today_rounded, size: 20),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: ctx,
+                      initialDate: agendaDate,
+                      firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                    );
+                    if (picked != null) {
+                      setDialogState(() => agendaDate = picked);
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () async {
+                          final picked = await showTimePicker(context: ctx, initialTime: startTime);
+                          if (picked != null) setDialogState(() => startTime = picked);
+                        },
+                        child: Text('${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}'),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text('-', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65))),
+                    ),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () async {
+                          final picked = await showTimePicker(context: ctx, initialTime: endTime);
+                          if (picked != null) setDialogState(() => endTime = picked);
+                        },
+                        child: Text('${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('Batal', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65))),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final title = titleController.text.trim();
+                if (title.isNotEmpty) {
+                  final provider = context.read<TaskProvider>();
+                  final agenda = PersonalAgendaModel(
+                    id: '',
+                    userId: provider.userId ?? '',
+                    title: title,
+                    date: agendaDate,
+                    startTime: '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}',
+                    endTime: '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}',
+                  );
+                  await provider.addPersonalAgenda(agenda);
+                  if (ctx.mounted) Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Simpan'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TaskProvider>();
@@ -134,6 +244,11 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
       appBar: AppBar(
         title: const Text('Jadwal & Celah Belajar'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.event_note_rounded),
+            tooltip: 'Tambah Agenda Pribadi',
+            onPressed: _showAddPersonalAgendaDialog,
+          ),
           IconButton(
             icon: const Icon(Icons.add_rounded),
             tooltip: 'Tambah Jadwal Kuliah',
@@ -206,10 +321,22 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
                             style: TextStyle(color: AppConstants.textSecondaryColor, fontSize: 13),
                           ),
                           const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: _showAddScheduleDialog,
-                            icon: const Icon(Icons.add),
-                            label: const Text('Tambah Jadwal Kuliah'),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.center,
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: _showAddScheduleDialog,
+                                icon: const Icon(Icons.add),
+                                label: const Text('Jadwal Kuliah'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: _showAddPersonalAgendaDialog,
+                                icon: const Icon(Icons.event_note_rounded),
+                                label: const Text('Agenda Pribadi'),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -327,6 +454,14 @@ class _SmartTimelineScreenState extends State<SmartTimelineScreen> {
                       IconButton(
                         icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppConstants.textSecondaryColor),
                         onPressed: () => provider.deleteClassSchedule(item.classSchedule!.id),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                    if (item.personalAgenda != null) ...[
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppConstants.textSecondaryColor),
+                        onPressed: () => provider.deletePersonalAgenda(item.personalAgenda!.id),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),

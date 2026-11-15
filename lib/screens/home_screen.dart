@@ -449,18 +449,40 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.task_alt_rounded, size: 64, color: AppConstants.borderSubtleColor),
-          SizedBox(height: 16),
-          Text(
+        children: [
+          const Icon(Icons.task_alt_rounded, size: 64, color: AppConstants.borderSubtleColor),
+          const SizedBox(height: 16),
+          const Text(
             'Tidak ada tugas pada kategori ini',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppConstants.textPrimaryColor),
           ),
-          SizedBox(height: 6),
-          Text(
+          const SizedBox(height: 6),
+          const Text(
             'Tekan tombol "Input Pintar AI ✨" untuk menambahkan tugas baru dari pesan dosen atau sinkronkan dengan portal e-learning kampusmu!',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: AppConstants.textSecondaryColor),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final provider = Provider.of<TaskProvider>(context, listen: false);
+              await provider.seedCharterData();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Data contoh Project Charter Kelompok 6 berhasil dimuat!'),
+                    backgroundColor: Color(0xFF6B8E78),
+                  ),
+                );
+              }
+            },
+            icon: const Icon(Icons.auto_stories_rounded, size: 18),
+            label: const Text('Muat Data Contoh Kelompok 6'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF6B8E78),
+              side: const BorderSide(color: Color(0xFF6B8E78)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            ),
           ),
         ],
       ),
@@ -473,7 +495,7 @@ class _HomeScreenState extends State<HomeScreen> {
         task.deadline.year == today.year &&
         task.deadline.month == today.month &&
         task.deadline.day == today.day).length;
-    final deliverables = provider.deliverablesFor('demo-group-1');
+    final deliverables = provider.allGroupDeliverables;
     final progress = deliverables.isEmpty
         ? 0
         : (deliverables.map((item) => item.progressPercent).reduce((a, b) => a + b) / deliverables.length).round();

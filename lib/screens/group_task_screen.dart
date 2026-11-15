@@ -148,6 +148,170 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
             ),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Batal', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65))),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final name = nameController.text.trim();
+              final phone = phoneController.text.trim();
+              if (name.isNotEmpty) {
+                final provider = context.read<TaskProvider>();
+                try {
+                  await provider.addGroupMember(
+                    projectId: project.id,
+                    name: name,
+                    phone: phone,
+                  );
+                  if (ctx.mounted) Navigator.pop(ctx);
+                } catch (e) {
+                  if (ctx.mounted) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
+                    );
+                  }
+                }
+              }
+            },
+            child: const Text('Tambah Anggota'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddDeliverableDialog(GroupProjectModel project) {
+    final titleController = TextEditingController();
+    String selectedType = 'Planning';
+    int selectedPriority = 2;
+    String selectedOwnerName = project.members.isNotEmpty ? project.members.first.name : '';
+    String selectedOwnerPhone = project.members.isNotEmpty ? project.members.first.phone : '';
+    final ownerNameController = TextEditingController(text: selectedOwnerName);
+    final ownerPhoneController = TextEditingController(text: selectedOwnerPhone);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: Theme.of(ctx).cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: AppConstants.borderSubtleColor),
+          ),
+          title: Text('Tambah Deliverable / Subtugas', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: titleController,
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
+                  decoration: const InputDecoration(
+                    labelText: 'Judul Deliverable',
+                    hintText: 'Contoh: Riset Pasar / UI Mockup',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: selectedType,
+                  decoration: const InputDecoration(labelText: 'Tipe Deliverable'),
+                  dropdownColor: Theme.of(ctx).cardColor,
+                  items: const [
+                    DropdownMenuItem(value: 'Planning', child: Text('Planning')),
+                    DropdownMenuItem(value: 'Development', child: Text('Development')),
+                    DropdownMenuItem(value: 'Report', child: Text('Report')),
+                    DropdownMenuItem(value: 'Testing', child: Text('Testing')),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) setDialogState(() => selectedType = val);
+                  },
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<int>(
+                  initialValue: selectedPriority,
+                  decoration: const InputDecoration(labelText: 'Prioritas'),
+                  dropdownColor: Theme.of(ctx).cardColor,
+                  items: const [
+                    DropdownMenuItem(value: 1, child: Text('1 - Critical')),
+                    DropdownMenuItem(value: 2, child: Text('2 - High')),
+                    DropdownMenuItem(value: 3, child: Text('3 - Medium')),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) setDialogState(() => selectedPriority = val);
+                  },
+                ),
+                const SizedBox(height: 12),
+                if (project.members.isNotEmpty) ...[
+                  DropdownButtonFormField<String>(
+                    initialValue: project.members.any((m) => m.name == selectedOwnerName) ? selectedOwnerName : null,
+                    decoration: const InputDecoration(labelText: 'Pilih PIC Anggota'),
+                    dropdownColor: Theme.of(ctx).cardColor,
+                    items: project.members.map((m) {
+                      return DropdownMenuItem(value: m.name, child: Text('${m.name} (${m.role})'));
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        final member = project.members.firstWhere((m) => m.name == val);
+                        setDialogState(() {
+                          selectedOwnerName = member.name;
+                          selectedOwnerPhone = member.phone;
+                          ownerNameController.text = member.name;
+                          ownerPhoneController.text = member.phone;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                TextField(
+                  controller: ownerNameController,
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
+                  decoration: const InputDecoration(labelText: 'Nama PIC', hintText: 'Nama Penanggung Jawab'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: ownerPhoneController,
+                  keyboardType: TextInputType.phone,
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
+                  decoration: const InputDecoration(labelText: 'Nomor WhatsApp PIC', hintText: '08123456789'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('Batal', style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.65))),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final title = titleController.text.trim();
+                final ownerName = ownerNameController.text.trim();
+                final ownerPhone = ownerPhoneController.text.trim();
+                if (title.isNotEmpty) {
+                  final provider = context.read<TaskProvider>();
+                  final deliverable = GroupDeliverableModel(
+                    id: '',
+                    projectId: project.id,
+                    title: title,
+                    type: selectedType,
+                    priority: selectedPriority,
+                    ownerName: ownerName.isNotEmpty ? ownerName : 'Rekan Tim',
+                    ownerPhone: ownerPhone,
+                    progressPercent: 0,
+                    status: DeliverableStatus.pending,
+                  );
+                  await provider.addDeliverable(deliverable);
+                  if (ctx.mounted) Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Tambah Deliverable'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -368,6 +532,17 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text('Deliverables Tim', style: TextStyle(fontWeight: FontWeight.bold, color: AppConstants.textPrimaryColor)),
+            TextButton.icon(
+              onPressed: () => _showAddDeliverableDialog(project),
+              icon: const Icon(Icons.add_task_rounded, size: 16),
+              label: const Text('Tambah Deliverable / Subtugas', style: TextStyle(fontSize: 12)),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('${deliverables.length} Subtugas', style: const TextStyle(fontSize: 12, color: AppConstants.textSecondaryColor)),
             Text('$progress% selesai', style: const TextStyle(fontWeight: FontWeight.bold, color: AppConstants.primaryColor)),
           ],
         ),
@@ -402,6 +577,14 @@ class _GroupTaskScreenState extends State<GroupTaskScreen> {
                         ),
                       ),
                       Text(statusLabel, style: const TextStyle(fontSize: 11, color: AppConstants.textSecondaryColor)),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.redAccent),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        tooltip: 'Hapus Deliverable',
+                        onPressed: () => provider.deleteDeliverable(project.id, deliverable.id),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 4),
