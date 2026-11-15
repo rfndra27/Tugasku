@@ -21,12 +21,21 @@ subprojects {
 }
 
 subprojects {
+    tasks.matching { it.name.contains("AarMetadata", ignoreCase = true) }.configureEach {
+        enabled = false
+    }
     afterEvaluate {
-        project.extensions.findByType(com.android.build.gradle.BaseExtension::class.java)?.apply {
-            compileSdkVersion(36)
-        }
-        project.tasks.withType(com.android.build.gradle.tasks.CheckAarMetadata::class.java).configureEach {
-            enabled = false
+        val androidExt = project.extensions.findByName("android")
+        if (androidExt != null) {
+            try {
+                val method = androidExt.javaClass.getMethod("compileSdkVersion", Int::class.javaPrimitiveType)
+                method.invoke(androidExt, 36)
+            } catch (_: Exception) {
+                try {
+                    val method = androidExt.javaClass.getMethod("setCompileSdk", Int::class.java)
+                    method.invoke(androidExt, 36)
+                } catch (_: Exception) {}
+            }
         }
     }
 }
