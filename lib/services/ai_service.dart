@@ -366,7 +366,9 @@ Keluarkan HANYA JSON array tanpa markdown:
     // grounded local fallback instead of leaving the user without an answer.
     var quotaServiceUnavailable = false;
     try {
-      final quotaResult = await firebaseService.checkAndIncrementAiQuota();
+      final quotaResult = await firebaseService
+          .checkAndIncrementAiQuota()
+          .timeout(const Duration(seconds: 6));
       if (quotaResult['allowed'] != true) {
         return AiActionResult(
           success: false,
@@ -434,15 +436,60 @@ Pedoman Menjawab:
     }
 
     // Deterministic Grounded Fallback Response
+    return AiActionResult(
+      success: true,
+      data: buildLocalAssistantResponse(userQuestion, activeTasks),
+    );
+  }
+
+  /// Provides a useful answer when Firebase or Gemini is unavailable.
+  /// This is intentionally grounded only in the tasks already loaded locally.
+  String buildLocalAssistantResponse(String userQuestion, List<TaskModel> activeTasks) {
+    final question = userQuestion.toLowerCase();
     if (activeTasks.isEmpty) {
-      return AiActionResult(
-        success: true,
-        data: 'Keren banget! Saat ini kamu tidak memiliki tugas aktif yang menumpuk. Nikmati waktu istirahatmu atau mulai pelajari materi perkuliahan berikutnya! 🚀',
-      );
+      if (question.contains('hari ini') || question.contains('mendesak')) {
+        return 'Hari ini belum ada tugas aktif yang tercatat. Kamu bisa memakai waktu ini untuk mengecek pengumuman kelas atau menyiapkan tugas berikutnya. 🚀';
+      }
+      return 'Keren banget! Saat ini kamu tidak memiliki tugas aktif yang menumpuk. Nikmati waktu istirahatmu atau mulai pelajari materi perkuliahan berikutnya! 🚀';
     }
 
     final topTask = activeTasks.first;
     final topDate = DateFormat('d MMMM yyyy jam HH:mm', 'id_ID').format(topTask.deadline);
+
+    if (question.contains('hari ini') || question.contains('sekarang')) {
+      final today = DateTime.now();
+      final todayTasks = activeTasks.where((task) {
+        final deadline = task.deadline;
+        return deadline.year == today.year &&
+            deadline.month == today.month &&
+            deadline.day == today.day;
+      }).toList();
+
+      if (todayTasks.isEmpty) {
+        return 'Tidak ada deadline yang jatuh tepat hari ini. Prioritas terdekatmu adalah **${topTask.title}** dari ${topTask.courseName}, dengan deadline $topDate. Kalau sempat, cicil bagian kecilnya hari ini supaya tidak menumpuk. ✅';
+      }
+
+      final lines = todayTasks.take(3).map((task) {
+        return '• **${task.title}** (${task.courseName}) — ${DateFormat('HH:mm').format(task.deadline)}';
+      }).join('\n');
+      return 'Ini tugas yang deadline-nya hari ini:\n\n$lines\n\nKerjakan yang skornya paling tinggi lebih dulu dan sisakan waktu untuk mengecek hasil sebelum dikumpulkan. ⏰';
+    }
+
+    if (question.contains('mendesak') || question.contains('prioritas') || question.contains('penting')) {
+      final lines = activeTasks.take(3).map((task) {
+        final deadline = DateFormat('d MMM, HH:mm', 'id_ID').format(task.deadline);
+        return '• **${task.title}** — ${task.courseName}\n  Deadline: $deadline | Skor: ${task.priorityScore.toStringAsFixed(1)}';
+      }).join('\n');
+      return 'Berikut urutan tugas yang paling perlu kamu perhatikan berdasarkan skor prioritas:\n\n$lines\n\nMulai dari **${topTask.title}**, lalu kerjakan minimal satu subtask sebelum pindah ke tugas berikutnya. 🎯';
+    }
+
+    if (question.contains('cicil') || question.contains('pecah') || question.contains('mulai')) {
+      return 'Untuk mencicil **${topTask.title}** dari mata kuliah **${topTask.courseName}**, coba pola ini:\n\n1. Buka instruksi dan kumpulkan bahan yang diperlukan.\n2. Kerjakan satu bagian kecil selama 25 menit.\n3. Istirahat 5 menit, lalu lanjutkan bagian berikutnya.\n4. Simpan hasil sementara dan catat langkah selanjutnya.\n\nDeadline tugas ini $topDate, jadi mulai dari langkah pertama sekarang ya. 💪';
+    }
+
+    if (question.contains('tips') || question.contains('waktu') || question.contains('minggu')) {
+      return 'Tips mengatur waktu kuliah berdasarkan tugasmu:\n\n• Jadikan **${topTask.title}** sebagai fokus pertama karena skor prioritasnya ${topTask.priorityScore.toStringAsFixed(1)}.\n• Gunakan sesi fokus 25–30 menit, lalu istirahat 5 menit.\n• Sisakan waktu khusus untuk revisi sebelum deadline $topDate.\n• Jangan membuka lebih dari satu tugas dalam satu sesi agar fokus tidak terpecah.\n\nTarget kecil yang konsisten lebih aman daripada sistem kebut semalam. 📚';
+    }
 
     final sb = StringBuffer();
     sb.writeln('Halo! Berdasarkan data tugas aktifmu, ini rekomendasi prioritas yang perlu kamu cicil sekarang:');
@@ -453,6 +500,6 @@ Pedoman Menjawab:
     sb.writeln('');
     sb.writeln('Tugas ini mendesak karena tenggat waktu yang dekat dan/atau bobot nilainya tinggi. Cicil 1-2 subtask hari ini ya, jangan sampai sistem kebut semalam! Semangat! 💪');
 
-    return AiActionResult(success: true, data: sb.toString());
+    return sb.toString();
   }
 }

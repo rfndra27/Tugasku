@@ -88,10 +88,11 @@ class _AiChatScreenState extends State<AiChatScreen> {
       }
     } catch (error) {
       if (!mounted) return;
+      final provider = context.read<TaskProvider>();
       setState(() {
         _messages.add(
           ChatMessage(
-            text: 'AI tidak dapat dihubungi saat ini. Periksa koneksi internet atau konfigurasi API, lalu coba lagi.',
+            text: provider.aiService.buildLocalAssistantResponse(text, provider.activeTasks),
             isUser: false,
           ),
         );

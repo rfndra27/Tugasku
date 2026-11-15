@@ -29,15 +29,14 @@ class _ElearningSyncDialogState extends State<ElearningSyncDialog> {
   Future<void> _handleFileImport() async {
     try {
       final provider = context.read<TaskProvider>();
-      final result = await FilePicker.platform.pickFiles(
+      final files = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['ics'],
-        withData: true,
       );
-      if (result == null) return;
-      final file = result.files.single;
-      final bytes = file.bytes;
-      if (bytes == null) throw Exception('File .ics tidak dapat dibaca.');
+      if (files.isEmpty) return;
+      final file = files.first;
+      final bytes = await file.readAsBytes();
+      if (bytes.isEmpty) throw Exception('File .ics tidak dapat dibaca atau kosong.');
       setState(() {
         _isLoading = true;
         _statusMessage = null;
