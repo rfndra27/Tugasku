@@ -39,7 +39,7 @@ jobs:
         run: flutter test
 
       - name: Build Release APK
-        run: flutter build apk --release
+        run: flutter build apk --release -v
 
       - name: Prepare APK Output
         run: |
@@ -73,3 +73,4 @@ jobs:
           files: dist/TugasKu.apk
           draft: false
           prerelease: false
+
