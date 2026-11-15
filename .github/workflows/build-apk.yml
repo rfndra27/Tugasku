@@ -1,0 +1,75 @@
+name: Build & Release TugasKu APK
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build TugasKu APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Run Tests
+        run: flutter test
+
+      - name: Build Release APK
+        run: flutter build apk --release
+
+      - name: Prepare APK Output
+        run: |
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk dist/TugasKu.apk
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TugasKu-APK
+          path: dist/TugasKu.apk
+
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        with:
+          tag_name: v1.0.0
+          name: "TugasKu Mobile App v1.0.0"
+          body: |
+            ### 📱 Download TugasKu untuk Android
+            
+            Silakan download file APK di bawah ini ke HP Android Anda:
+            - **File**: `TugasKu.apk`
+            - **Versi**: 1.0.0
+            
+            **Cara Instalasi:**
+            1. Download file `TugasKu.apk`.
+            2. Buka file hasil unduhan di HP Android.
+            3. Jika muncul peringatan keamanan, izinkan "Instal dari sumber ini" / "Allow from this source".
+            4. Klik **Instal** dan aplikasi siap digunakan!
+          files: dist/TugasKu.apk
+          draft: false
+          prerelease: false
